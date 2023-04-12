@@ -1,0 +1,11 @@
+$ git commit -m "primer commit"
+
+
+nicol@DESKTOP-7EUD8HF MINGW64 /e/Proyectos python/ws_smart (master)
+$ git remote add origin https://github.com/nicos1985/ws_smart.git
+
+nicol@DESKTOP-7EUD8HF MINGW64 /e/Proyectos python/ws_smart (master)
+$ git branch -M main
+
+nicol@DESKTOP-7EUD8HF MINGW64 /e/Proyectos python/ws_smart (main)
+$ git push -u origin main
