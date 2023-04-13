@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import time
 import PIL
+import PIL
 
 
 gui.FAILSAFE
@@ -11,8 +12,15 @@ gui.FAILSAFE
 
 def sel_click(png,x1,x2,w,h,x0=0, y0=0):
     print(png)
+    print(f'x1:{x1}')
+    print(f'x2:{x2}')
+    print(f'w:{w}')
+    print(f'h:{h}')
+    #gui.moveTo(x=(int(x1)), y=(int(x2)))
+    #gui.moveTo(x=(int(x1+w)), y=(int(x2+h)))
     png_coordenadas = gui.locateCenterOnScreen(png, grayscale=True, confidence=0.7, region=(x1,x2,w,h))
     print(f'png_coordenadas{png_coordenadas}')
+    gui.moveTo(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0))
     gui.click(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0), clicks=1, button='left')
 
 archivo_origen = 'origen.txt'
@@ -31,27 +39,29 @@ ventana.geometry('100x100')
 def ejecutar():
     
     pantalla = gui.size()
+    print(int(pantalla[0]*0.80),int(pantalla[1]*0.15), int(pantalla[0]*0.11), int(pantalla[1]*0.09))
     for i in range(len(lista_dni)):
-        print(gui.position())
-        sel_click('busqueda_personas.png',0,300, 200, 230,x0=50)
-        #sel_click('buscar_registro.png', 1600,170, 250, 100, x0=-30)
-        time.sleep(1)
+        # Buscar personas
+        sel_click('busqueda_personas.png',1,int(pantalla[1]*0.2777), int(pantalla[0]*0.1010), int(pantalla[1]*0.2129),x0=50)
+        time.sleep(0.5)
         #Buscar Registro
-        gui.click(pantalla[0]*0.9,pantalla[1]*0.27,clicks=1,button='left')
+        sel_click('buscar_registro.png', int(pantalla[0]*0.85),int(pantalla[1]*0.22), int(pantalla[0]*0.25), int(pantalla[1]*0.12), x0=-30)
+        
 
-
+        #Traigo DNI del txt
         dni_current = lista_dni[i]
+        #copio el DNI a portapapeles
         clip.copy(dni_current)
-
+        #Pego el DNI en portapapeles
         gui.hotkey('ctrl', 'v')
         gui.press('enter') 
 
-        time.sleep(1.5)
-        
+        time.sleep(1)
+        #Doy clic en la 1ra persona
         gui.click(pantalla[0]*0.6,pantalla[1]*0.45,clicks=1,button='left')
         
         gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
-        time.sleep(3)
+        time.sleep(2)
         gui.scroll(-300)
 
         time.sleep(5)
