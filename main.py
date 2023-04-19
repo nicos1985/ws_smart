@@ -4,21 +4,22 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import time
 import PIL
-import PIL
 
 
 gui.FAILSAFE
 
 
-def sel_click(png,x1,x2,w,h,x0=0, y0=0):
+def sel_click(png,x1,x2,w,h,x0=0, y0=0, grayscale=True):
     print(png)
     print(f'x1:{x1}')
     print(f'x2:{x2}')
     print(f'w:{w}')
     print(f'h:{h}')
     #gui.moveTo(x=(int(x1)), y=(int(x2)))
+    #time.sleep(2)
     #gui.moveTo(x=(int(x1+w)), y=(int(x2+h)))
-    png_coordenadas = gui.locateCenterOnScreen(png, grayscale=True, confidence=0.7, region=(x1,x2,w,h))
+    #time.sleep(2)
+    png_coordenadas = gui.locateCenterOnScreen(png, grayscale=grayscale, confidence=0.7, region=(x1,x2,w,h))
     print(f'png_coordenadas{png_coordenadas}')
     gui.moveTo(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0))
     gui.click(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0), clicks=1, button='left')
@@ -45,7 +46,7 @@ def ejecutar():
         sel_click('busqueda_personas.png',1,int(pantalla[1]*0.2777), int(pantalla[0]*0.1010), int(pantalla[1]*0.2129),x0=50)
         time.sleep(0.5)
         #Buscar Registro
-        sel_click('buscar_registro.png', int(pantalla[0]*0.85),int(pantalla[1]*0.22), int(pantalla[0]*0.25), int(pantalla[1]*0.12), x0=-30)
+        sel_click('buscar_registro.png', int(pantalla[0]*0.85),int(pantalla[1]*0.18), int(pantalla[0]*0.25), int(pantalla[1]*0.12), x0=-30)
         
 
         #Traigo DNI del txt
@@ -58,7 +59,8 @@ def ejecutar():
 
         time.sleep(1)
         #Doy clic en la 1ra persona
-        gui.click(pantalla[0]*0.6,pantalla[1]*0.45,clicks=1,button='left')
+        #gui.click(pantalla[0]*0.6,pantalla[1]*0.45,clicks=1,button='left')
+        sel_click('cliente.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50))
         
         gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
         time.sleep(2)
