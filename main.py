@@ -7,7 +7,7 @@ import PIL
 import datetime
 import os
 from psutil import Process 
-import psutil
+import psutil 
 
 
 
@@ -75,8 +75,9 @@ def cli_activo(pantalla, nombre_cli,estado,sexo,fecha_nac, dni_current):
         return flujo
     
 def get_process(process_name):
-    for process in psutil.process_iter():
-        if process.name == process_name:
+    for process in psutil.process_iter(['pid','name']):
+        print(f'process: {process.info["name"]} == {process_name}')
+        if process.info['name'] == process_name:
             return process
 
 def abrir_explorador():
@@ -97,14 +98,11 @@ def abrir_explorador():
 
         nombre_proceso = "chrome.exe"
         # Obtener lista de procesos en ejecución
-        p = get_process('chrome.exe')
-        
-        for proceso in p:
-            print(proceso.name)
-            if proceso.name == nombre_proceso:
-                print("Chrome está en ejecución.")
-                return "chrome ejecutó"
-            break
+        p = get_process(nombre_proceso)
+        print(f'proceso:{p}')
+        if p is not None:
+            print("Chrome está en ejecución.")
+            return "chrome ejecutó"
         else:
             print("Chrome no está en ejecución.")
             return "chrome no ejecutó"
