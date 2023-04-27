@@ -1,6 +1,7 @@
 import pyautogui as gui
 import time
+import datetime
 
-gui.sleep(5)
+date1 = datetime.date.today()
 
-gui.hotkey('ctrl', 'shift', 'left')
+print(date1)

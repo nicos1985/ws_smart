@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import time
 import PIL
-import datetime
+from datetime import date, datetime
 import os
 from psutil import Process 
 import psutil 
@@ -28,6 +28,12 @@ def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscal
     gui.click(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0), clicks=1, button='left')
 
     # si esta activo el cliente entonces sigue a la proxima pantalla para poder obtener el monto
+def reg_log(archivo, mensaje, *args):
+    now = datetime.now()
+    time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
+    with open(archivo, 'a') as archivo:
+        archivo.write(f'{mensaje},{args},{time_stamp}\n') 
+
 def cli_activo(pantalla, nombre_cli,estado,sexo,fecha_nac, dni_current):
     if estado == "ACTIVO":
         print('es cliente activo')
@@ -51,25 +57,25 @@ def cli_activo(pantalla, nombre_cli,estado,sexo,fecha_nac, dni_current):
         monto = clip.paste()
         monto_proc = monto.replace("$", "").replace(" ", "").replace(".","")
 
-        now = datetime.datetime.now()
+        now = datetime.now()
         time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
         print(f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
         registro = (f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
         reg_proc = registro.splitlines()
         registro_fin = ''.join(reg_proc)
-        with open(archivo_destino, 'a') as archivo:
+        with open('destino.txt', 'a') as archivo:
             archivo.write(f'{registro_fin},\n')
         flujo = 'activo'
         return flujo
     else:
         print('NO ES cliente activo')
-        now = datetime.datetime.now()
+        now = datetime.now()
         time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
         print(time_stamp)
         monto_proc = 'n/c'
         print(f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
         
-        with open(archivo_destino, 'a') as archivo:
+        with open('destino.txt', 'a') as archivo:
             archivo.write(f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp},\n')
         flujo = 'no activo'
         return flujo
@@ -82,7 +88,7 @@ def get_process(process_name):
 
 def abrir_explorador():
     # abre chrome
-    gui.hotkey('ctrl', 'alt', 'm')
+    gui.hotkey('ctrl', 'alt', 'c')
     time.sleep(8)
     # maximiza
     gui.keyDown('alt')
@@ -101,18 +107,23 @@ def abrir_explorador():
         p = get_process(nombre_proceso)
         print(f'proceso:{p}')
         if p is not None:
-            print("Chrome está en ejecución.")
-            return "chrome ejecutó"
+            print("Chrome está en ejecucion.")
+            return "chrome ejecuto"
         else:
-            print("Chrome no está en ejecución.")
-            return "chrome no ejecutó"
+            print("Chrome no está en ejecucion.")
+            return "chrome no ejecuto"
     else:
         print("El chrome no existe.")
         return "chrome no existe"
 
 def abre_incognito():
     #abre ventana incognito
-    gui.hotkey('ctrl', 'shift', 'n')
+    
+    gui.keyDown('ctrl')
+    gui.keyDown('shift')
+    gui.press('n')
+    gui.keyUp('ctrl')
+    gui.keyUp('shift')
     time.sleep(3)
     
 def ingresa_smart(url):
@@ -140,8 +151,27 @@ def log_in(mail, contrasena):
     gui.press('enter')
     time.sleep(4)
     #continua la sesion abierta
-    sel_click('si.png')
-    time.sleep(10)
+    try:
+        sel_click('si.png')
+        mensaje = "Se realizó la apertura del explorador. Se logueó correctamente"
+        reg_log(f'log{date.today()}.txt',mensaje)
+        time.sleep(6)
+
+        return True
+    except:
+        mensaje = "No se pudo abrir el explorador o no se pudo realizar el logueo. Se reintenta"
+        reg_log(f'log{date.today()}.txt',mensaje)
+        
+        #Cerrar Chrome
+        gui.keyDown('alt')
+        gui.press('f4')
+        gui.press('f4')
+        gui.keyUp('alt')
+        time.sleep(1)
+        return False
+        
+
+def habilita_cursor():
     #cambia a modo cursor para navegar
     gui.press('F7')
     time.sleep(0.5)
@@ -167,49 +197,55 @@ def ejecutar():
     pantalla = gui.size()
     
     resultado_exp = abrir_explorador()
-    if resultado_exp == "chrome ejecutó":
+    print('inicia proceso de abrir explorador')
+    if resultado_exp == "chrome ejecuto":
+
         abre_incognito()
+        print('inicia proceso de abrir incognito')
 
         ingresa_smart('https://smartbg.dynamics.bancogalicia.com.ar/apps/portal')
 
-        log_in('operador.galicia54@hotmail.com', 'Oper1234')
+        res_log = log_in('operador.galicia54@hotmail.com', 'Oper123l')
+        if res_log == True:
+            habilita_cursor()
 
-        #Empieza el loop de pegado de dni
-        print(int(pantalla[0]*0.80),int(pantalla[1]*0.15), int(pantalla[0]*0.11), int(pantalla[1]*0.09))
-        for i in range(len(lista_dni)):     
-            # Buscar personas
-            sel_click('busqueda_personas.png',1,int(pantalla[1]*0.2777), int(pantalla[0]*0.1010), int(pantalla[1]*0.2129),x0=50)
-            time.sleep(0.5)
-            gui.press('tab',2)
-            
-            #Traigo DNI del txt
-            dni_current = lista_dni[i]
-            #copio el DNI a portapapeles
-            clip.copy(dni_current)
-            #Pego el DNI en portapapeles
-            gui.hotkey('ctrl', 'v')
-            gui.press('enter')
-            
-            time.sleep(1)
-            #Doy clic en la 1ra persona
-            #gui.click(pantalla[0]*0.6,pantalla[1]*0.45,clicks=1,button='left')
-            select = gui.locateCenterOnScreen('marco.png', grayscale=True, confidence=0.7)
-            gui.moveTo(select)
-            gui.drag(pantalla[0]*0.80,0,0.5)
-            gui.hotkey('ctrl', 'c')
-            cliente = clip.paste()
-            print(cliente)
-            nombre_cli, estado, sexo, fecha_nac  = cliente.splitlines()
-            fecha_nac_corr = fecha_nac.strip()
-            print(f'nombre: {nombre_cli},estado: {estado} , sexo: {sexo}, fecha nac: {fecha_nac_corr}, dni: {dni_current}')
-            
-            flujo = cli_activo(pantalla, nombre_cli,estado,sexo,fecha_nac_corr, dni_current)
+            #Empieza el loop de pegado de dni
+            print(int(pantalla[0]*0.80),int(pantalla[1]*0.15), int(pantalla[0]*0.11), int(pantalla[1]*0.09))
+            for i in range(len(lista_dni)):     
+                # Buscar personas
+                sel_click('busqueda_personas.png',1,int(pantalla[1]*0.2777), int(pantalla[0]*0.1010), int(pantalla[1]*0.2129),x0=50)
+                time.sleep(0.5)
+                gui.press('tab',2)
+                
+                #Traigo DNI del txt
+                dni_current = lista_dni[i]
+                #copio el DNI a portapapeles
+                clip.copy(dni_current)
+                #Pego el DNI en portapapeles
+                gui.hotkey('ctrl', 'v')
+                gui.press('enter')
+                
+                time.sleep(1)
+                #Doy clic en la 1ra persona
+                #gui.click(pantalla[0]*0.6,pantalla[1]*0.45,clicks=1,button='left')
+                select = gui.locateCenterOnScreen('marco.png', grayscale=True, confidence=0.7)
+                gui.moveTo(select)
+                gui.drag(pantalla[0]*0.80,0,0.5)
+                gui.hotkey('ctrl', 'c')
+                cliente = clip.paste()
+                print(cliente)
+                nombre_cli, estado, sexo, fecha_nac  = cliente.splitlines()
+                fecha_nac_corr = fecha_nac.strip()
+                print(f'nombre: {nombre_cli},estado: {estado} , sexo: {sexo}, fecha nac: {fecha_nac_corr}, dni: {dni_current}')
+                
+                flujo = cli_activo(pantalla, nombre_cli,estado,sexo,fecha_nac_corr, dni_current)
 
-            if flujo == 'no activo':
-                continue  
-
+                if flujo == 'no activo':
+                    continue  
+        else:
+            ejecutar()            
     else:
-        messagebox.showwarning('Error', f'{resultado_exp}')   
+        reg_log(f'log{date.today()}.txt',f'{resultado_exp}')   
     
 
     
