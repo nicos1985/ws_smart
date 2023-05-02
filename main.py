@@ -34,17 +34,9 @@ def reg_log(archivo, mensaje, *args):
     with open(archivo, 'a') as archivo:
         archivo.write(f'{mensaje},{args},{time_stamp}\n') 
 
-def cli_activo(pantalla, nombre_cli,estado,sexo,fecha_nac, dni_current):
-    if estado == "ACTIVO":
-        print('es cliente activo')
-        gui.click(pantalla[0]*0.5, pantalla[1]*0.75)
-        sel_click('activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50))
-        gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
-        time.sleep(2)
-        gui.scroll(-300)
-        
-        time.sleep(3)
-        x=1    
+def encontrar_verde(pantalla,estado):
+    try:
+        count_try = 0   
         punto_verde = gui.locateCenterOnScreen('punto_verde.png', grayscale=True, confidence=0.8)
         gui.click(punto_verde, button="left")
         
@@ -56,7 +48,27 @@ def cli_activo(pantalla, nombre_cli,estado,sexo,fecha_nac, dni_current):
         gui.hotkey('ctrl', 'c')
         monto = clip.paste()
         monto_proc = monto.replace("$", "").replace(" ", "").replace(".","")
+        return monto_proc
+    except:
+        count_try = count_try+1
+        error = f'No se encuentra el punto verde {count_try}'
+        return error
 
+
+def cli_activo(pantalla,estado):
+    if estado == "ACTIVO":
+        print('es cliente activo')
+        gui.click(pantalla[0]*0.5, pantalla[1]*0.75)
+        sel_click('activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50))
+        gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
+        time.sleep(2)
+        gui.scroll(-300)
+        
+        time.sleep(3)
+        x=1 
+        return 'realizado'
+
+        """
         now = datetime.now()
         time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
         print(f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
@@ -67,7 +79,10 @@ def cli_activo(pantalla, nombre_cli,estado,sexo,fecha_nac, dni_current):
             archivo.write(f'{registro_fin},\n')
         flujo = 'activo'
         return flujo
+        """
     else:
+        return 'no realizado'
+        """
         print('NO ES cliente activo')
         now = datetime.now()
         time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -79,7 +94,7 @@ def cli_activo(pantalla, nombre_cli,estado,sexo,fecha_nac, dni_current):
             archivo.write(f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp},\n')
         flujo = 'no activo'
         return flujo
-    
+        """   
 def get_process(process_name):
     for process in psutil.process_iter(['pid','name']):
         print(f'process: {process.info["name"]} == {process_name}')
@@ -88,8 +103,12 @@ def get_process(process_name):
 
 def abrir_explorador():
     # abre chrome
-    gui.hotkey('ctrl', 'alt', 'c')
+    print('antes de presionar ctrl alt c')
+    with gui.hold(['ctrl', 'alt']):
+        gui.press('c')
+    print('despues de presionar ctrl alt c')
     time.sleep(8)
+    """
     # maximiza
     gui.keyDown('alt')
     gui.keyDown('space')
@@ -97,6 +116,7 @@ def abrir_explorador():
     gui.keyUp('alt')
     gui.keyUp('space')
     time.sleep(4)
+    """
     print("Busca chrome")
     ruta_chrome = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
     if os.path.exists(ruta_chrome):
@@ -118,12 +138,12 @@ def abrir_explorador():
 
 def abre_incognito():
     #abre ventana incognito
-    
-    gui.keyDown('ctrl')
-    gui.keyDown('shift')
-    gui.press('n')
-    gui.keyUp('ctrl')
-    gui.keyUp('shift')
+    gui.hotkey('ctrl', 'shift', 'n')
+    #gui.keyDown('ctrl')
+    #gui.keyDown('shift')
+    #gui.press('n')
+    #gui.keyUp('ctrl')
+    #gui.keyUp('shift')
     time.sleep(3)
     
 def ingresa_smart(url):
@@ -144,10 +164,12 @@ def log_in(mail, contrasena):
     gui.press('del',50)
     clip.copy(mail_smart)
     gui.hotkey('ctrl', 'v')
+    time.sleep(0.2)
     gui.press('enter')
     time.sleep(4)
     clip.copy(contra_smart)
     gui.hotkey('ctrl', 'v')
+    time.sleep(0.2)
     gui.press('enter')
     time.sleep(4)
     #continua la sesion abierta
@@ -177,7 +199,50 @@ def habilita_cursor():
     time.sleep(0.5)
     gui.press('enter')
     time.sleep(0.5)
+    #pantalla al 100%
+    gui.hotkey('ctrl', '0')
     
+def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
+    count_try = 0
+    try:
+        sel_click('busqueda_personas.png',int(pantalla[0]*por_x),int(pantalla[1]*por_y), int(pantalla[0]*por_w), int(pantalla[1]*por_h),x0=x0)
+        time.sleep(0.5)
+        gui.press('tab',2)
+        return 'buscar exitoso'
+    
+    except:
+        count_try = count_try + 1 
+        error = f'No se encuentra busqueda personas. count = {count_try}'
+        return error
+    
+def busco_dni(i):
+    #Traigo DNI del txt
+    dni_current = lista_dni[i]
+    #copio el DNI a portapapeles
+    clip.copy(dni_current)
+    #Pego el DNI en portapapeles
+    gui.hotkey('ctrl', 'v')
+    time.sleep(0.3)
+    gui.press('enter')
+    time.sleep(1)
+    return dni_current
+
+def copia_datos_dni(pantalla, dni_current):
+    try:
+        select = gui.locateCenterOnScreen('marco.png', grayscale=True, confidence=0.7)
+        gui.moveTo(select)
+        gui.drag(pantalla[0]*0.80,0,0.5)
+        gui.hotkey('ctrl', 'c')
+        cliente = clip.paste()
+        print(cliente)
+        nombre_cli, estado, sexo, fecha_nac  = cliente.splitlines()
+        fecha_nac_corr = fecha_nac.strip()
+        cliente_proc = [nombre_cli, estado, sexo, fecha_nac_corr, dni_current]
+        print(f'nombre: {nombre_cli},estado: {estado} , sexo: {sexo}, fecha nac: {fecha_nac_corr}, dni: {dni_current}')
+        return cliente_proc
+    except:
+        error = 'error al copiar datos del cliente'
+        return error
 
 archivo_origen = 'origen.txt'
 archivo_destino = 'destino.txt'
@@ -195,8 +260,10 @@ ventana.geometry('100x100')
 def ejecutar():
     #Abre chrome
     pantalla = gui.size()
-    
+    print('antes de ejecutar abrir chrome')
+    time.sleep(2)
     resultado_exp = abrir_explorador()
+    print(f'resultado_exp:{resultado_exp}')
     print('inicia proceso de abrir explorador')
     if resultado_exp == "chrome ejecuto":
 
@@ -205,46 +272,39 @@ def ejecutar():
 
         ingresa_smart('https://smartbg.dynamics.bancogalicia.com.ar/apps/portal')
 
-        res_log = log_in('operador.galicia54@hotmail.com', 'Oper123l')
+        res_log = log_in('operador.galicia54@hotmail.com', 'Oper1234')
         if res_log == True:
             habilita_cursor()
 
             #Empieza el loop de pegado de dni
-            print(int(pantalla[0]*0.80),int(pantalla[1]*0.15), int(pantalla[0]*0.11), int(pantalla[1]*0.09))
-            for i in range(len(lista_dni)):     
+            #print(int(pantalla[0]*0.80),int(pantalla[1]*0.15), int(pantalla[0]*0.11), int(pantalla[1]*0.09))
+           
+            for i in range(len(lista_dni)): 
+
                 # Buscar personas
-                sel_click('busqueda_personas.png',1,int(pantalla[1]*0.2777), int(pantalla[0]*0.1010), int(pantalla[1]*0.2129),x0=50)
-                time.sleep(0.5)
-                gui.press('tab',2)
-                
-                #Traigo DNI del txt
-                dni_current = lista_dni[i]
-                #copio el DNI a portapapeles
-                clip.copy(dni_current)
-                #Pego el DNI en portapapeles
-                gui.hotkey('ctrl', 'v')
-                gui.press('enter')
-                
-                time.sleep(1)
-                #Doy clic en la 1ra persona
-                #gui.click(pantalla[0]*0.6,pantalla[1]*0.45,clicks=1,button='left')
-                select = gui.locateCenterOnScreen('marco.png', grayscale=True, confidence=0.7)
-                gui.moveTo(select)
-                gui.drag(pantalla[0]*0.80,0,0.5)
-                gui.hotkey('ctrl', 'c')
-                cliente = clip.paste()
-                print(cliente)
-                nombre_cli, estado, sexo, fecha_nac  = cliente.splitlines()
-                fecha_nac_corr = fecha_nac.strip()
-                print(f'nombre: {nombre_cli},estado: {estado} , sexo: {sexo}, fecha nac: {fecha_nac_corr}, dni: {dni_current}')
-                
-                flujo = cli_activo(pantalla, nombre_cli,estado,sexo,fecha_nac_corr, dni_current)
+                pag_buscar = busca_personas(pantalla, 0.001, 0.2777, 0.1010, 0.2129, 50)
+
+                if pag_buscar == 'buscar exitoso':
+                    buscar_dni = busco_dni(i)
+                    cliente = copia_datos_dni(pantalla, buscar_dni)
+
+                    if cliente != 'error al copiar datos del cliente':
+                        nombre_cli, estado, sexo, fecha_nac_corr, dni_current = cliente
+                        flujo = cli_activo(pantalla, nombre_cli, estado, sexo, fecha_nac_corr, dni_current)
+                        if flujo == 'realizado':
+                            verde = encontrar_verde(pantalla, estado)
+    
+                    else:
+                        cliente = copia_datos_dni(pantalla, buscar_dni)
+                else:
+                    pag_buscar = busca_personas(pantalla, 0.001, 0.2777, 0.1010, 0.2129, 50)
 
                 if flujo == 'no activo':
                     continue  
         else:
             ejecutar()            
     else:
+        ejecutar()
         reg_log(f'log{date.today()}.txt',f'{resultado_exp}')   
     
 
