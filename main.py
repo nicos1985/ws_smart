@@ -13,6 +13,7 @@ import psutil
 
 
 def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscale=True):
+    """Selecciona segun cordenadas de locate, mueve el mouse y hace clik en el punto indicado. Se pasan coordenadas y una png"""
     print(png)
     print(f'x1:{x1}')
     print(f'x2:{x2}')
@@ -29,12 +30,14 @@ def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscal
 
     # si esta activo el cliente entonces sigue a la proxima pantalla para poder obtener el monto
 def reg_log(archivo, mensaje, *args):
+    """Registra un evento en el archivo indicado, hace un time stamp y los datos que se pasen por args."""
     now = datetime.now()
     time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
     with open(archivo, 'a') as archivo:
         archivo.write(f'{mensaje},{args},{time_stamp}\n') 
 
 def encontrar_verde(pantalla,estado):
+    """ Encuentra punto verde de aprobado en pantalla de monto"""
     try:
         count_try = 0   
         punto_verde = gui.locateCenterOnScreen('punto_verde.png', grayscale=True, confidence=0.8)
@@ -56,6 +59,7 @@ def encontrar_verde(pantalla,estado):
 
 
 def cli_activo(pantalla,estado):
+    """Hace clik en el cliente activo y mueve con scroll hacia abajo."""
     if estado == "ACTIVO":
         print('es cliente activo')
         gui.click(pantalla[0]*0.5, pantalla[1]*0.75)
@@ -96,12 +100,14 @@ def cli_activo(pantalla,estado):
         return flujo
         """   
 def get_process(process_name):
+    """Obtiene el proceso de google chrome de la lista de procesos de windows"""
     for process in psutil.process_iter(['pid','name']):
         print(f'process: {process.info["name"]} == {process_name}')
         if process.info['name'] == process_name:
             return process
 
 def abrir_explorador():
+    """ Abre el explorador Chrome y chequea que se haya abierto para continuar con el siguiente paso."""
     # abre chrome
     print('antes de presionar ctrl alt c')
     with gui.hold(['ctrl', 'alt']):
@@ -137,6 +143,7 @@ def abrir_explorador():
         return "chrome no existe"
 
 def abre_incognito():
+    """ Abre la ventana de incognito de chrome"""
     #abre ventana incognito
     gui.hotkey('ctrl', 'shift', 'n')
     #gui.keyDown('ctrl')
@@ -147,6 +154,7 @@ def abre_incognito():
     time.sleep(3)
     
 def ingresa_smart(url):
+    """ingresa a smart usando la url pasada."""
     #ingresa a smart
     gui.hotkey('ctrl', 'l')
     smart_url = url
@@ -156,6 +164,7 @@ def ingresa_smart(url):
     gui.press('enter')
 
 def log_in(mail, contrasena):
+    """Ingresa mail y contraseña para ingresar a smart"""
     #coloca mail y contraseña
     mail_smart = mail
     contra_smart = contrasena
@@ -194,6 +203,7 @@ def log_in(mail, contrasena):
         
 
 def habilita_cursor():
+    """habilita el modo de cursor para navegar y establece la pantalla al 100%"""
     #cambia a modo cursor para navegar
     gui.press('F7')
     time.sleep(0.5)
@@ -203,6 +213,7 @@ def habilita_cursor():
     gui.hotkey('ctrl', '0')
     
 def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
+    """Busca el boton para realizar la busqueda de personas"""
     count_try = 0
     try:
         sel_click('busqueda_personas.png',int(pantalla[0]*por_x),int(pantalla[1]*por_y), int(pantalla[0]*por_w), int(pantalla[1]*por_h),x0=x0)
@@ -216,6 +227,8 @@ def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
         return error
     
 def busco_dni(i):
+    """Busca el dni siguiente en archivo de origen y lo coloca en el campo de busqueda. Da enter"""
+
     #Traigo DNI del txt
     dni_current = lista_dni[i]
     #copio el DNI a portapapeles
@@ -228,6 +241,7 @@ def busco_dni(i):
     return dni_current
 
 def copia_datos_dni(pantalla, dni_current):
+    """Copia los datos del dni encontrado y los deja en la variable cliente_proc, en caso de error, retorna el mismo."""
     try:
         select = gui.locateCenterOnScreen('marco.png', grayscale=True, confidence=0.7)
         gui.moveTo(select)
@@ -246,6 +260,7 @@ def copia_datos_dni(pantalla, dni_current):
 
 archivo_origen = 'origen.txt'
 archivo_destino = 'destino.txt'
+
 with open(archivo_origen, 'r') as archivo:
     contenido = archivo.read().splitlines()
 
@@ -258,6 +273,7 @@ ventana.geometry('100x100')
 
 
 def ejecutar():
+    """ejecuta el flujo del proceso. Construyendo"""
     #Abre chrome
     pantalla = gui.size()
     print('antes de ejecutar abrir chrome')
@@ -309,7 +325,7 @@ def ejecutar():
     
 
     
-
+#Boton de ejecutar
 botton_ejecutar = ttk.Button(ventana, text='Ejecutar', command=ejecutar)
 botton_ejecutar.grid(row=0, column=0)
 
