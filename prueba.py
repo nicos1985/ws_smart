@@ -26,7 +26,7 @@ time.sleep(2)
 with gui.hold(['ctrl', 'shift']):
     gui.press('n')
 
-"""
+
 
 with open('origen.txt', 'r') as arch_origen:
     contenido = arch_origen.read()
@@ -39,3 +39,9 @@ if contador <= 3:
     print(f'contador = {contador}')
 else:
     print(f'el dni {dni} superó la cantidad de intentos. ')
+"""
+contador_explor = 0
+resultado_exp = 'chrome no ejecuto'
+while resultado_exp == 'chrome no ejecuto' and contador_explor < 5:
+    print(contador_explor)
+    contador_explor += 1

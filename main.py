@@ -37,7 +37,7 @@ def reg_log(archivo, mensaje, *args):
         archivo.write(f'{mensaje},{args},{time_stamp}\n') 
 
 def a_reintentar_dni(dni_current, archivo, intentos=3):
-    
+    """agrega el dni a la lista de origen para poder reintentarlo"""
     with open(archivo, 'r') as arch_origen:
         contenido = arch_origen.read()
     
@@ -55,7 +55,7 @@ def a_reintentar_dni(dni_current, archivo, intentos=3):
 def encontrar_verde(pantalla,estado):
     """ Encuentra punto verde de aprobado en pantalla de monto"""
     try:
-        count_try = 0   
+          
         punto_verde = gui.locateCenterOnScreen('punto_verde.png', grayscale=True, confidence=0.8)
         gui.click(punto_verde, button="left")
         
@@ -69,12 +69,12 @@ def encontrar_verde(pantalla,estado):
         monto_proc = monto.replace("$", "").replace(" ", "").replace(".","")
         return monto_proc
     except:
-        count_try = count_try+1
-        error = f'No se encuentra el punto verde {count_try}'
+        
+        error = f'No se encuentra el punto verde'
         return error
     
 
-def guarda_info(archivo, dni_current, nombre_cli, estado, sexo, fecha_nac, monto_proc):
+def guarda_info(archivo_origen, dni_current, nombre_cli, estado, sexo, fecha_nac, monto_proc):
     """Guarda la info de la linea con todos los datos en el archivo."""
     try:   
         now = datetime.now()
@@ -83,10 +83,10 @@ def guarda_info(archivo, dni_current, nombre_cli, estado, sexo, fecha_nac, monto
         registro = (f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
         reg_proc = registro.splitlines()
         registro_fin = ''.join(reg_proc)
-        with open(archivo, 'a') as arch:
+        with open(archivo_origen, 'a') as arch:
             arch.write(f'{registro_fin},\n')
-        flujo = 'activo'
-        return flujo
+        fase = 'cargado'
+        return fase
     except:
         error = 'no se pudo cargar el registro en el archivo'
         return error
@@ -194,7 +194,6 @@ def log_in(mail, contrasena):
         return True
     except:
         mensaje = "No se pudo abrir el explorador o no se pudo realizar el logueo. Se reintenta"
-        reg_log(f'log{date.today()}.txt',mensaje)
         
         #Cerrar Chrome
         gui.keyDown('alt')
@@ -202,7 +201,7 @@ def log_in(mail, contrasena):
         gui.press('f4')
         gui.keyUp('alt')
         time.sleep(1)
-        return False
+        return mensaje
         
 
 def habilita_cursor():
@@ -279,53 +278,74 @@ def ejecutar():
     """ejecuta el flujo del proceso. Construyendo"""
     #Abre chrome
     pantalla = gui.size()
+    contador_explor = 0
+    resultado_exp = 'chrome no ejecuto'
+
     print('antes de ejecutar abrir chrome')
     time.sleep(2)
-    resultado_exp = abrir_explorador()
-    print(f'resultado_exp:{resultado_exp}')
-    print('inicia proceso de abrir explorador')
-    if resultado_exp == "chrome ejecuto":
+    while resultado_exp == 'chrome no ejecuto' and contador_explor < 5:
 
-        abre_incognito()
-        print('inicia proceso de abrir incognito')
+        resultado_exp = abrir_explorador()
+        print(f'resultado_exp:{resultado_exp}')
+        print('inicia proceso de abrir explorador')
 
-        ingresa_smart('https://smartbg.dynamics.bancogalicia.com.ar/apps/portal')
+        if resultado_exp == "chrome ejecuto":
 
-        res_log = log_in('operador.galicia54@hotmail.com', 'Oper1234')
-        if res_log == True:
-            habilita_cursor()
+            abre_incognito()
+            print('inicia proceso de abrir incognito')
 
-            #Empieza el loop de pegado de dni
-            #print(int(pantalla[0]*0.80),int(pantalla[1]*0.15), int(pantalla[0]*0.11), int(pantalla[1]*0.09))
-           
-            for i in range(len(lista_dni)): 
+            ingresa_smart('https://smartbg.dynamics.bancogalicia.com.ar/apps/portal')
 
-                # Buscar personas
-                pag_buscar = busca_personas(pantalla, 0.001, 0.2777, 0.1010, 0.2129, 50)
+            res_log = log_in('operador.galicia54@hotmail.com', 'Oper1234')
+            if res_log == True:
+                habilita_cursor()
 
-                if pag_buscar == 'buscar exitoso':
-                    buscar_dni = busco_dni(i)
-                    cliente = copia_datos_dni(pantalla, buscar_dni)
+                #Empieza el loop de pegado de dni
+                #print(int(pantalla[0]*0.80),int(pantalla[1]*0.15), int(pantalla[0]*0.11), int(pantalla[1]*0.09))
+            
+                for i in range(len(lista_dni)): 
 
-                    if cliente != 'error al copiar datos del cliente':
-                        nombre_cli, estado, sexo, fecha_nac_corr, dni_current = cliente
-                        flujo = cli_activo(pantalla, nombre_cli, estado, sexo, fecha_nac_corr, dni_current)
-                        if flujo == 'realizado':
-                            verde = encontrar_verde(pantalla, estado)
-    
-                    else:
-                        cliente = copia_datos_dni(pantalla, buscar_dni)
-                else:
+                    # Buscar personas
                     pag_buscar = busca_personas(pantalla, 0.001, 0.2777, 0.1010, 0.2129, 50)
 
-                if flujo == 'no activo':
-                    continue  
+                    if pag_buscar == 'buscar exitoso':
+                        buscar_dni = busco_dni(i)
+                        cliente = copia_datos_dni(pantalla, buscar_dni)
+
+                        if cliente != 'error al copiar datos del cliente':
+                            nombre_cli, estado, sexo, fecha_nac_corr, dni_current = cliente
+                            flujo = cli_activo(pantalla, estado)
+                            if flujo == 'realizado':
+                                verde = encontrar_verde(pantalla, estado)
+                                if verde != 'No se encuentra el punto verde':
+                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde)
+                                else:
+                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
+                                    reg_log(f'log{date.today()}.txt',f'{verde}',dni_current)
+                                    a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                                    continue
+                            else:
+                                guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
+                                reg_log(f'log{date.today()}.txt',f'{flujo}',dni_current)
+                                a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                                continue
+                        else:
+                            #archivo hay que definirlo entes de todo esto 
+                            guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
+                            reg_log(f'log{date.today()}.txt',f'{pag_buscar}')
+                            if estado == 'activo':
+                                a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                            continue
+                    else:
+                        reg_log(f'log{date.today()}.txt',f'{cliente}')
+                        continue
+            else:
+                reg_log(f'log{date.today()}.txt',f'{res_log}')            
         else:
-            ejecutar()            
-    else:
-        ejecutar()
-        reg_log(f'log{date.today()}.txt',f'{resultado_exp}')   
-    
+            
+            reg_log(f'log{date.today()}.txt',f'{resultado_exp}')
+
+        contador_explor +=1
 
     
 #Boton de ejecutar

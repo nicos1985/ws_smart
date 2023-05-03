@@ -1,1 +1,16 @@
 Se realizó la apertura del explorador. Se logueó correctamente,(),2023-05-02 21:34:11
+Se realizó la apertura del explorador. Se logueó correctamente,(),2023-05-02 23:22:54
+no realizado,(),2023-05-02 23:23:05
+No se encuentra el punto verde,(),2023-05-02 23:23:34
+No se encuentra el punto verde,(),2023-05-02 23:25:04
+no realizado,(),2023-05-02 23:26:18
+No se encuentra el punto verde,(),2023-05-02 23:26:57
+No se encuentra el punto verde,(),2023-05-02 23:27:17
+No se encuentra el punto verde,(),2023-05-02 23:27:26
+buscar exitoso,(),2023-05-02 23:27:49
+Se realizó la apertura del explorador. Se logueó correctamente,(),2023-05-02 23:35:45
+no realizado,('12568811',),2023-05-02 23:35:56
+No se encuentra el punto verde,('4415957',),2023-05-02 23:36:55
+No se encuentra el punto verde,('4442244',),2023-05-02 23:38:25
+No se encuentra el punto verde,('4514115',),2023-05-02 23:38:34
+no realizado,('4525791',),2023-05-02 23:39:08
