@@ -36,6 +36,22 @@ def reg_log(archivo, mensaje, *args):
     with open(archivo, 'a') as archivo:
         archivo.write(f'{mensaje},{args},{time_stamp}\n') 
 
+def a_reintentar_dni(dni_current, archivo, intentos=3):
+    
+    with open(archivo, 'r') as arch_origen:
+        contenido = arch_origen.read()
+    
+    dni = dni_current
+    contador = contenido.count(dni)
+    print(f'contador = {contador}')
+    if contador <= intentos:
+        with open(archivo, 'a') as archivo:
+            archivo.write(f'{dni_current}\n')
+        return 'agregado'
+    else:
+        error = f'el {dni_current} superó la cantidad de intentos'
+        return error
+
 def encontrar_verde(pantalla,estado):
     """ Encuentra punto verde de aprobado en pantalla de monto"""
     try:
@@ -56,7 +72,25 @@ def encontrar_verde(pantalla,estado):
         count_try = count_try+1
         error = f'No se encuentra el punto verde {count_try}'
         return error
+    
 
+def guarda_info(archivo, dni_current, nombre_cli, estado, sexo, fecha_nac, monto_proc):
+    """Guarda la info de la linea con todos los datos en el archivo."""
+    try:   
+        now = datetime.now()
+        time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
+        print(f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
+        registro = (f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
+        reg_proc = registro.splitlines()
+        registro_fin = ''.join(reg_proc)
+        with open(archivo, 'a') as arch:
+            arch.write(f'{registro_fin},\n')
+        flujo = 'activo'
+        return flujo
+    except:
+        error = 'no se pudo cargar el registro en el archivo'
+        return error
+        
 
 def cli_activo(pantalla,estado):
     """Hace clik en el cliente activo y mueve con scroll hacia abajo."""
@@ -71,48 +105,21 @@ def cli_activo(pantalla,estado):
         time.sleep(3)
         x=1 
         return 'realizado'
-
-        """
-        now = datetime.now()
-        time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
-        print(f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
-        registro = (f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
-        reg_proc = registro.splitlines()
-        registro_fin = ''.join(reg_proc)
-        with open('destino.txt', 'a') as archivo:
-            archivo.write(f'{registro_fin},\n')
-        flujo = 'activo'
-        return flujo
-        """
     else:
         return 'no realizado'
-        """
-        print('NO ES cliente activo')
-        now = datetime.now()
-        time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
-        print(time_stamp)
-        monto_proc = 'n/c'
-        print(f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
         
-        with open('destino.txt', 'a') as archivo:
-            archivo.write(f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp},\n')
-        flujo = 'no activo'
-        return flujo
-        """   
+       
 def get_process(process_name):
     """Obtiene el proceso de google chrome de la lista de procesos de windows"""
     for process in psutil.process_iter(['pid','name']):
-        print(f'process: {process.info["name"]} == {process_name}')
         if process.info['name'] == process_name:
             return process
 
 def abrir_explorador():
     """ Abre el explorador Chrome y chequea que se haya abierto para continuar con el siguiente paso."""
     # abre chrome
-    print('antes de presionar ctrl alt c')
     with gui.hold(['ctrl', 'alt']):
         gui.press('c')
-    print('despues de presionar ctrl alt c')
     time.sleep(8)
     """
     # maximiza
@@ -146,11 +153,6 @@ def abre_incognito():
     """ Abre la ventana de incognito de chrome"""
     #abre ventana incognito
     gui.hotkey('ctrl', 'shift', 'n')
-    #gui.keyDown('ctrl')
-    #gui.keyDown('shift')
-    #gui.press('n')
-    #gui.keyUp('ctrl')
-    #gui.keyUp('shift')
     time.sleep(3)
     
 def ingresa_smart(url):
@@ -162,6 +164,7 @@ def ingresa_smart(url):
     time.sleep(2)
     gui.hotkey('ctrl', 'v')
     gui.press('enter')
+
 
 def log_in(mail, contrasena):
     """Ingresa mail y contraseña para ingresar a smart"""
