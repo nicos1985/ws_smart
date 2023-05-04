@@ -1,0 +1,49 @@
+Se realizó la apertura del explorador. Se logueó correctamente,(),2023-05-03 21:58:07
+no realizado,('12568811',),2023-05-03 21:58:18
+No se encuentra el punto verde,('4410507',),2023-05-03 21:58:57
+No se encuentra el punto verde,('4420902',),2023-05-03 21:59:26
+No se encuentra el punto verde,('4421418',),2023-05-03 21:59:36
+No se encuentra el punto verde,('4432425',),2023-05-03 22:00:15
+no realizado,('4525791',),2023-05-03 22:01:29
+No se encuentra el punto verde,('4530141',),2023-05-03 22:01:48
+No se encuentra el punto verde,('4530420',),2023-05-03 22:01:57
+No se encuentra el punto verde,('4536140',),2023-05-03 22:02:07
+buscar exitoso,(),2023-05-03 22:03:00
+Se realizó la apertura del explorador. Se logueó correctamente,(),2023-05-03 22:08:23
+no realizado,('12568811',),2023-05-03 22:08:34
+No se encuentra el punto verde,('4523795',),2023-05-03 22:11:33
+No se encuentra el punto verde,('4524933',),2023-05-03 22:11:43
+no realizado,('4525791',),2023-05-03 22:11:46
+buscar exitoso,(),2023-05-03 22:13:20
+no realizado,('12568811',),2023-05-03 22:13:23
+no realizado,('4525791',),2023-05-03 22:14:07
+Se realizó la apertura del explorador. Se logueó correctamente,(),2023-05-03 22:28:46
+no realizado,('12568811',),2023-05-03 22:28:56
+No se encuentra el punto verde,('4410183',),2023-05-03 22:29:26
+No se encuentra el punto verde,('4420902',),2023-05-03 22:30:05
+No se encuentra el punto verde,('4421418',),2023-05-03 22:30:15
+No se encuentra el punto verde,('4422049',),2023-05-03 22:30:24
+No se encuentra el punto verde,('4524933',),2023-05-03 22:32:04
+no realizado,('4525791',),2023-05-03 22:32:07
+No se encuentra el punto verde,('4536140',),2023-05-03 22:32:47
+No se encuentra el punto verde,('4538746',),2023-05-03 22:32:56
+no realizado,('4432630',),2023-05-03 22:33:30
+no realizado,('12568811',),2023-05-03 22:33:33
+no realizado,('4525791',),2023-05-03 22:33:57
+no realizado,('12568811',),2023-05-03 22:34:00
+no realizado,('4525791',),2023-05-03 22:34:03
+Se realizó la apertura del explorador. Se logueó correctamente,(),2023-05-03 23:02:39
+no realizado,('12568811',),2023-05-03 23:02:50
+No se encuentra el punto verde,('4546382',),2023-05-03 23:02:59
+no realizado,('4525791',),2023-05-03 23:06:04
+No se pudo abrir el explorador o no se pudo realizar el logueo. Se reintenta,(),2023-05-03 23:26:24
+Se realizó la apertura del explorador. Se logueó correctamente,(),2023-05-03 23:27:23
+no realizado,('12568811',),2023-05-03 23:27:34
+No se encuentra el punto verde,('4546382',),2023-05-03 23:27:43
+No se encuentra el punto verde,('4410183',),2023-05-03 23:28:02
+no realizado,('4525791',),2023-05-03 23:30:46
+No se encuentra el punto verde,('4530141',),2023-05-03 23:31:06
+No se encuentra el punto verde,('4530420',),2023-05-03 23:31:15
+No se encuentra el punto verde,('4536140',),2023-05-03 23:31:25
+No se encuentra el punto verde,('4538746',),2023-05-03 23:31:34
+No se encuentra el punto verde,('4547021',),2023-05-03 23:31:43

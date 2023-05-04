@@ -14,17 +14,17 @@ import psutil
 
 def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscale=True):
     """Selecciona segun cordenadas de locate, mueve el mouse y hace clik en el punto indicado. Se pasan coordenadas y una png"""
-    print(png)
-    print(f'x1:{x1}')
-    print(f'x2:{x2}')
-    print(f'w:{w}')
-    print(f'h:{h}')
+    #print(png)
+    #print(f'x1:{x1}')
+    #print(f'x2:{x2}')
+    #print(f'w:{w}')
+    #print(f'h:{h}')
     #gui.moveTo(x=(int(x1)), y=(int(x2)))
     #time.sleep(2)
     #gui.moveTo(x=(int(x1+w)), y=(int(x2+h)))
     #time.sleep(2)
     png_coordenadas = gui.locateCenterOnScreen(png, grayscale=grayscale, confidence=0.7, region=(x1,x2,w,h))
-    print(f'png_coordenadas{png_coordenadas}')
+    #print(f'png_coordenadas{png_coordenadas}')
     gui.moveTo(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0))
     gui.click(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0), clicks=1, button='left')
 
@@ -47,6 +47,8 @@ def a_reintentar_dni(dni_current, archivo, intentos=3):
     if contador <= intentos:
         with open(archivo, 'a') as archivo:
             archivo.write(f'{dni_current}\n')
+        lista_dni.append(dni)
+        print(lista_dni)
         return 'agregado'
     else:
         error = f'el {dni_current} superó la cantidad de intentos'
@@ -59,7 +61,7 @@ def encontrar_verde(pantalla,estado):
         punto_verde = gui.locateCenterOnScreen('punto_verde.png', grayscale=True, confidence=0.8)
         gui.click(punto_verde, button="left")
         
-        print(punto_verde)
+        #print(punto_verde)
 
         click = gui.moveTo(int(punto_verde[0])+pantalla[0]*0.12,int(punto_verde[1])-pantalla[1]*0.10)
 
@@ -216,7 +218,7 @@ def habilita_cursor():
     
 def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
     """Busca el boton para realizar la busqueda de personas"""
-    count_try = 0
+    
     try:
         sel_click('busqueda_personas.png',int(pantalla[0]*por_x),int(pantalla[1]*por_y), int(pantalla[0]*por_w), int(pantalla[1]*por_h),x0=x0)
         time.sleep(0.5)
@@ -224,8 +226,8 @@ def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
         return 'buscar exitoso'
     
     except:
-        count_try = count_try + 1 
-        error = f'No se encuentra busqueda personas. count = {count_try}'
+        
+        error = f'No se encuentra busqueda personas'
         return error
     
 def busco_dni(i):
@@ -250,11 +252,11 @@ def copia_datos_dni(pantalla, dni_current):
         gui.drag(pantalla[0]*0.80,0,0.5)
         gui.hotkey('ctrl', 'c')
         cliente = clip.paste()
-        print(cliente)
+        #print(cliente)
         nombre_cli, estado, sexo, fecha_nac  = cliente.splitlines()
         fecha_nac_corr = fecha_nac.strip()
         cliente_proc = [nombre_cli, estado, sexo, fecha_nac_corr, dni_current]
-        print(f'nombre: {nombre_cli},estado: {estado} , sexo: {sexo}, fecha nac: {fecha_nac_corr}, dni: {dni_current}')
+        #print(f'nombre: {nombre_cli},estado: {estado} , sexo: {sexo}, fecha nac: {fecha_nac_corr}, dni: {dni_current}')
         return cliente_proc
     except:
         error = 'error al copiar datos del cliente'
@@ -325,19 +327,22 @@ def ejecutar():
                                     a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                     continue
                             else:
-                                guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
-                                reg_log(f'log{date.today()}.txt',f'{flujo}',dni_current)
-                                a_reintentar_dni(dni_current, archivo_origen, intentos=3)
-                                continue
+                                if cliente[1] == 'ACTIVO':
+                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
+                                    reg_log(f'log{date.today()}.txt',f'{flujo}',dni_current)
+                                    a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                                    continue
+                                else:
+                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
+                                    reg_log(f'log{date.today()}.txt',f'{flujo}',dni_current)
+                                    continue
                         else:
                             #archivo hay que definirlo entes de todo esto 
-                            guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
-                            reg_log(f'log{date.today()}.txt',f'{pag_buscar}')
-                            if estado == 'activo':
-                                a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                            
+                            reg_log(f'log{date.today()}.txt',f'{cliente}', dni_current)
                             continue
                     else:
-                        reg_log(f'log{date.today()}.txt',f'{cliente}')
+                        reg_log(f'log{date.today()}.txt',f'{pag_buscar}')
                         continue
             else:
                 reg_log(f'log{date.today()}.txt',f'{res_log}')            
@@ -346,6 +351,7 @@ def ejecutar():
             reg_log(f'log{date.today()}.txt',f'{resultado_exp}')
 
         contador_explor +=1
+        print(contador_explor)
 
     
 #Boton de ejecutar
