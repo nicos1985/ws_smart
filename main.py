@@ -2,12 +2,14 @@ import pyautogui as gui
 import clipboard as clip
 import tkinter as tk
 from tkinter import ttk, messagebox
+from tkinter.filedialog import askopenfilename, askdirectory
 import time
 import PIL
 from datetime import date, datetime
 import os
 from psutil import Process 
-import psutil 
+import psutil
+import ast 
 
 
 
@@ -76,7 +78,7 @@ def encontrar_verde(pantalla,estado):
         return error
     
 
-def guarda_info(archivo_origen, dni_current, nombre_cli, estado, sexo, fecha_nac, monto_proc):
+def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac, monto_proc):
     """Guarda la info de la linea con todos los datos en el archivo."""
     try:   
         now = datetime.now()
@@ -85,7 +87,7 @@ def guarda_info(archivo_origen, dni_current, nombre_cli, estado, sexo, fecha_nac
         registro = (f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
         reg_proc = registro.splitlines()
         registro_fin = ''.join(reg_proc)
-        with open(archivo_origen, 'a') as arch:
+        with open(f'{archivo_destino}\\export-{time_stamp}.txt', 'a') as arch:
             arch.write(f'{registro_fin},\n')
         fase = 'cargado'
         return fase
@@ -99,12 +101,12 @@ def cli_activo(pantalla,estado):
     if estado == "ACTIVO":
         print('es cliente activo')
         gui.click(pantalla[0]*0.5, pantalla[1]*0.75)
-        sel_click('activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50))
+        sel_click('img/activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50))
         gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
-        time.sleep(2)
+        time.sleep(2*tiempo_var.get())
         gui.scroll(-300)
         
-        time.sleep(3)
+        time.sleep(3*tiempo_var.get())
         x=1 
         return 'realizado'
     else:
@@ -122,7 +124,7 @@ def abrir_explorador():
     # abre chrome
     with gui.hold(['ctrl', 'alt']):
         gui.press('c')
-    time.sleep(8)
+    time.sleep(8*tiempo_var.get())
     """
     # maximiza
     gui.keyDown('alt')
@@ -130,7 +132,7 @@ def abrir_explorador():
     gui.press('x')
     gui.keyUp('alt')
     gui.keyUp('space')
-    time.sleep(4)
+    time.sleep(4*tiempo_var.get())
     """
     print("Busca chrome")
     ruta_chrome = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
@@ -155,7 +157,7 @@ def abre_incognito():
     """ Abre la ventana de incognito de chrome"""
     #abre ventana incognito
     gui.hotkey('ctrl', 'shift', 'n')
-    time.sleep(3)
+    time.sleep(3*tiempo_var.get())
     
 def ingresa_smart(url):
     """ingresa a smart usando la url pasada."""
@@ -163,7 +165,7 @@ def ingresa_smart(url):
     gui.hotkey('ctrl', 'l')
     smart_url = url
     clip.copy(smart_url)
-    time.sleep(2)
+    time.sleep(2*tiempo_var.get())
     gui.hotkey('ctrl', 'v')
     gui.press('enter')
 
@@ -173,25 +175,25 @@ def log_in(mail, contrasena):
     #coloca mail y contraseña
     mail_smart = mail
     contra_smart = contrasena
-    time.sleep(4)
+    time.sleep(4*tiempo_var.get())
     gui.press('home')
     gui.press('del',50)
     clip.copy(mail_smart)
     gui.hotkey('ctrl', 'v')
     time.sleep(0.2)
     gui.press('enter')
-    time.sleep(4)
+    time.sleep(4*tiempo_var.get())
     clip.copy(contra_smart)
     gui.hotkey('ctrl', 'v')
     time.sleep(0.2)
     gui.press('enter')
-    time.sleep(4)
+    time.sleep(4*tiempo_var.get())
     #continua la sesion abierta
     try:
-        sel_click('si.png')
+        sel_click('img/si.png')
         mensaje = "Se realizó la apertura del explorador. Se logueó correctamente"
-        reg_log(f'log{date.today()}.txt',mensaje)
-        time.sleep(6)
+        reg_log(f'{archivo_destino}\log{date.today()}.txt',mensaje)
+        time.sleep(6*tiempo_var.get())
 
         return True
     except:
@@ -202,7 +204,7 @@ def log_in(mail, contrasena):
         gui.press('f4')
         gui.press('f4')
         gui.keyUp('alt')
-        time.sleep(1)
+        time.sleep(1*tiempo_var.get())
         return mensaje
         
 
@@ -220,7 +222,7 @@ def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
     """Busca el boton para realizar la busqueda de personas"""
     
     try:
-        sel_click('busqueda_personas.png',int(pantalla[0]*por_x),int(pantalla[1]*por_y), int(pantalla[0]*por_w), int(pantalla[1]*por_h),x0=x0)
+        sel_click('img/busqueda_personas.png',int(pantalla[0]*por_x),int(pantalla[1]*por_y), int(pantalla[0]*por_w), int(pantalla[1]*por_h),x0=x0)
         time.sleep(0.5)
         gui.press('tab',2)
         return 'buscar exitoso'
@@ -241,7 +243,7 @@ def busco_dni(i):
     gui.hotkey('ctrl', 'v')
     time.sleep(0.3)
     gui.press('enter')
-    time.sleep(1)
+    time.sleep(1*tiempo_var.get())
     return dni_current
 
 def copia_datos_dni(pantalla, dni_current):
@@ -262,29 +264,126 @@ def copia_datos_dni(pantalla, dni_current):
         error = 'error al copiar datos del cliente'
         return error
 
-archivo_origen = 'origen.txt'
-archivo_destino = 'destino.txt'
-
-with open(archivo_origen, 'r') as archivo:
-    contenido = archivo.read().splitlines()
-
-lista_dni = list(contenido)
-print(f'lista_dni: {lista_dni}')
 
 ventana = tk.Tk()
-ventana.geometry('100x100')
+ventana.geometry('1000x750')
+ventana.configure(bg='#93BDA5')
+ventana.resizable(width=False, height=False)
 
+
+#variables
+link_var = tk.StringVar()
+mail_var = tk.StringVar()
+contrasena_var = tk.StringVar()
+ruta_origen_var = tk.StringVar()
+ruta_export_var = tk.StringVar()
+tiempo_var = tk.DoubleVar()
+
+#Funciones Vista
+def elegir_origen():
+    """Elige el origen de la ruta de los datos en txt"""
+    ruta_origen_ent.configure(state='normal')
+    ruta_origen_ent.delete(0, 'end')
+    ruta_origen_var = askopenfilename()
+    ruta_origen_ent.insert(0, ruta_origen_var)
+    ruta_origen_ent.configure(state='readonly')
+    return ruta_origen_var
+
+def elegir_destino():
+    """elige la ruta de destino donde guardara el txt"""
+    ruta_destino_ent.config(state='normal')
+    ruta_destino_ent.delete(0,'end')
+    ruta_export_var = askdirectory()
+    ruta_destino_ent.insert(0, ruta_export_var)
+    ruta_destino_ent.config(state='readonly')
+    return ruta_export_var
+
+def guardar():
+    """Guarda los parametros ingresados para recuperarlos en la proxima apertura"""
+    parametros_dict = {'link': link_var.get(), 
+                       'mail':mail_var.get(),
+                       'contrasena': contrasena_var.get(), 
+                       'ruta origen': ruta_origen_var.get(), 
+                       'ruta export': ruta_export_var.get(),
+                       'tiempo': tiempo_var.get()
+                       }
+
+    with open('parametros.txt', 'w') as param:
+        
+        param.write(f'{parametros_dict}')
+
+link_ent = tk.Entry(ventana, textvariable = link_var, width=60, font=('Calibri', 11))
+link_ent.grid(row=2, column=1, sticky='W', padx=5, pady=5)
+
+link_ent = tk.Entry(ventana, textvariable = link_var, width=60, font=('Calibri', 11))
+link_ent.grid(row=2, column=1, sticky='W', padx=5, pady=5)
+#link_ent.insert(0,'https://smartbg.dynamics.bancogalicia.com.ar/apps/portal')
+
+mail_ent = tk.Entry(ventana, textvariable = mail_var, width=60, font=('Calibri', 11))
+mail_ent.grid(row=3, column=1, sticky='W', padx=5, pady=5)
+#mail_ent.insert(0,'operador.galicia54@hotmail.com')
+
+cont_ent = tk.Entry(ventana, textvariable = contrasena_var, width=60, font=('Calibri', 11), show="*")
+cont_ent.grid(row=4, column=1, sticky='W', padx=5, pady=5)
+#cont_ent.insert(0,'Oper1234')
+
+ruta_origen_ent = tk.Entry(ventana, textvariable = ruta_origen_var, width=80, font=('Calibri', 11))
+ruta_origen_ent.grid(row=6, column=1, sticky='W', padx=5, pady=5)
+
+ruta_destino_ent = tk.Entry(ventana, textvariable = ruta_export_var, width=80, font=('Calibri', 11))
+ruta_destino_ent.grid(row=7, column=1, sticky='W', padx=5, pady=5)
+
+tiempo_ent = tk.Entry(ventana, textvariable = tiempo_var, width=80, font=('Calibri', 11))
+tiempo_ent.grid(row=8, column=1, sticky='W', padx=5, pady=5)
+
+
+def del_insert(objeto, insert):
+    """Inserta texto en textbox previamente borra lo existente"""
+    objeto.delete(0,'end')     
+    objeto.insert(0, insert)
+
+
+def leer_parametros():
+    """lee los parametros en el archivo 'parametros.txt' para poder llenar los textbox con lo guardado"""
+    with open('parametros.txt', 'r') as leer_param:
+        parametros = leer_param.read()
+        diccionario = ast.literal_eval(parametros)
+    del_insert(link_ent,diccionario['link'])
+    del_insert(mail_ent,diccionario['mail'])
+    del_insert(cont_ent,diccionario['contrasena'])
+    del_insert(ruta_origen_ent,diccionario['ruta origen'])
+    del_insert(ruta_destino_ent,diccionario['ruta export'])
+    del_insert(tiempo_ent,diccionario['tiempo'])
+
+
+leer_parametros()
 
 
 def ejecutar():
     """ejecuta el flujo del proceso. Construyendo"""
     #Abre chrome
     pantalla = gui.size()
+
+    global archivo_origen
+    archivo_origen = ruta_origen_var.get()
+
+    global archivo_destino
+    archivo_destino = ruta_export_var.get()
+    
+
+    with open(archivo_origen, 'r') as archivo:
+        contenido = archivo.read().splitlines()
+
+    global lista_dni
+
+    lista_dni = list(contenido)
+    print(f'lista_dni: {lista_dni}')
+
     contador_explor = 0
     resultado_exp = 'chrome no ejecuto'
 
     print('antes de ejecutar abrir chrome')
-    time.sleep(2)
+    time.sleep(2*tiempo_var.get())
     while resultado_exp == 'chrome no ejecuto' and contador_explor < 5:
 
         resultado_exp = abrir_explorador()
@@ -296,9 +395,9 @@ def ejecutar():
             abre_incognito()
             print('inicia proceso de abrir incognito')
 
-            ingresa_smart('https://smartbg.dynamics.bancogalicia.com.ar/apps/portal')
+            ingresa_smart(link_var.get())
 
-            res_log = log_in('operador.galicia54@hotmail.com', 'Oper1234')
+            res_log = log_in(mail_var.get(), contrasena_var.get())
             if res_log == True:
                 habilita_cursor()
 
@@ -323,40 +422,91 @@ def ejecutar():
                                     guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde)
                                 else:
                                     guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
-                                    reg_log(f'log{date.today()}.txt',f'{verde}',dni_current)
+                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{verde}',dni_current)
                                     a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                     continue
                             else:
                                 if cliente[1] == 'ACTIVO':
                                     guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
-                                    reg_log(f'log{date.today()}.txt',f'{flujo}',dni_current)
+                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',dni_current)
                                     a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                     continue
                                 else:
                                     guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
-                                    reg_log(f'log{date.today()}.txt',f'{flujo}',dni_current)
+                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',dni_current)
                                     continue
                         else:
                             #archivo hay que definirlo entes de todo esto 
                             
-                            reg_log(f'log{date.today()}.txt',f'{cliente}', dni_current)
+                            reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{cliente}', dni_current)
                             continue
                     else:
-                        reg_log(f'log{date.today()}.txt',f'{pag_buscar}')
+                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{pag_buscar}')
                         continue
             else:
-                reg_log(f'log{date.today()}.txt',f'{res_log}')            
+                reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{res_log}')            
         else:
             
-            reg_log(f'log{date.today()}.txt',f'{resultado_exp}')
+            reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{resultado_exp}')
 
         contador_explor +=1
         print(contador_explor)
 
+#Frame
+
+
+
+
+#Label
+#Titulo
+titulo_lb = tk.Label(ventana, text='SMART Test',font=('Calibri 18 bold'), foreground ='white',background='#377D56' ,relief=tk.GROOVE, bd=2, padx=10, pady=10, width='81')
+titulo_lb.grid(row = 0, column=0, columnspan=4)
+
+seccion_princ = tk.Label(ventana, text='Log-in',font=('Calibri 15 bold'), foreground ='#323133', background='#93BDA5')
+seccion_princ.grid(row = 1, column=0, sticky='W', padx=5, pady=5)
+
+link_lb = tk.Label(ventana, text='Link',font=('Calibri', 11), foreground ='#323133')
+link_lb.grid(row = 2, column=0, sticky='W', padx=5, pady=5)
+
+mail_lb = tk.Label(ventana, text='Mail',font=('Calibri', 11), foreground ='#323133')
+mail_lb.grid(row = 3, column=0, sticky='W', padx=5, pady=5)
+
+cont_lb = tk.Label(ventana, text='Contraseña',font=('Calibri', 11), foreground ='#323133')
+cont_lb.grid(row = 4, column=0, sticky='W', padx=5, pady=5)
+
+ruta_origen_lb = tk.Label(ventana, text='Ruta archivo origen',font=('Calibri', 11), foreground ='#323133')
+ruta_origen_lb.grid(row = 6, column=0, sticky='W', padx=5, pady=5)
+
+ruta_destino_lb = tk.Label(ventana, text='Ruta archivo destino',
+                   font=('Calibri', 11), foreground ='#323133')
+ruta_destino_lb.grid(row = 7, column=0, sticky='W', padx=5, pady=5)
+
+tiempo_lb = tk.Label(ventana, text='Tiempo',
+                   font=('Calibri', 11), foreground ='#323133')
+tiempo_lb.grid(row = 8, column=0, sticky='W', padx=5, pady=5)
+
+##Entry##
+
+
+
+#separador1 = ttk.Separator(ventana, orient = 'horizontal')
+#separador1.place(relx=0, rely=0.32, relwidth=1, relheight=1)
+
+  
     
+
 #Boton de ejecutar
-botton_ejecutar = ttk.Button(ventana, text='Ejecutar', command=ejecutar)
-botton_ejecutar.grid(row=0, column=0)
+botton_ejecutar = tk.Button(ventana, text='Iniciar', command=ejecutar, background='#377D56', font=('calibri',13), foreground='white')
+botton_ejecutar.grid(row=10, column=2, padx=9, pady=9)
+
+botton_ejecutar = tk.Button(ventana, text='Examinar', command=elegir_origen, background='#377D56', font=('calibri',12), foreground='white')
+botton_ejecutar.grid(row=6, column=2, sticky='W')
+
+botton_ejecutar = tk.Button(ventana, text='Examinar', command=elegir_destino, background='#377D56', font=('calibri',12), foreground='white')
+botton_ejecutar.grid(row=7, column=2, sticky='W')
+
+botton_ejecutar = tk.Button(ventana, text='Guardar', command=lambda:guardar(), background='#377D56', font=('calibri',12), foreground='white')
+botton_ejecutar.grid(row=8, column=2, sticky='W')
 
 
 
