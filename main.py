@@ -12,8 +12,6 @@ import psutil
 import ast 
 
 
-
-
 def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscale=True):
     """Selecciona segun cordenadas de locate, mueve el mouse y hace clik en el punto indicado. Se pasan coordenadas y una png"""
     #print(png)
@@ -25,7 +23,7 @@ def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscal
     #time.sleep(2)
     #gui.moveTo(x=(int(x1+w)), y=(int(x2+h)))
     #time.sleep(2)
-    png_coordenadas = gui.locateCenterOnScreen(png, grayscale=grayscale, confidence=0.7, region=(x1,x2,w,h))
+    png_coordenadas = gui.locateCenterOnScreen(png, grayscale=grayscale, confidence=0.5, region=(x1,x2,w,h))
     #print(f'png_coordenadas{png_coordenadas}')
     gui.moveTo(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0))
     gui.click(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0), clicks=1, button='left')
@@ -190,7 +188,10 @@ def log_in(mail, contrasena):
     time.sleep(4*tiempo_var.get())
     #continua la sesion abierta
     try:
-        sel_click('img/si.png')
+        gui.press('enter')
+        time.sleep(1*tiempo_var.get())
+        
+        gui.press('enter')
         mensaje = "Se realizó la apertura del explorador. Se logueó correctamente"
         reg_log(f'{archivo_destino}\log{date.today()}.txt',mensaje)
         time.sleep(6*tiempo_var.get())
@@ -249,7 +250,7 @@ def busco_dni(i):
 def copia_datos_dni(pantalla, dni_current):
     """Copia los datos del dni encontrado y los deja en la variable cliente_proc, en caso de error, retorna el mismo."""
     try:
-        select = gui.locateCenterOnScreen('marco.png', grayscale=True, confidence=0.7)
+        select = gui.locateCenterOnScreen('marco.png', grayscale=True, confidence=0.5)
         gui.moveTo(select)
         gui.drag(pantalla[0]*0.80,0,0.5)
         gui.hotkey('ctrl', 'c')
@@ -398,6 +399,7 @@ def ejecutar():
             ingresa_smart(link_var.get())
 
             res_log = log_in(mail_var.get(), contrasena_var.get())
+            print(res_log)
             if res_log == True:
                 habilita_cursor()
 
@@ -407,14 +409,14 @@ def ejecutar():
                 for i in range(len(lista_dni)): 
 
                     # Buscar personas
-                    pag_buscar = busca_personas(pantalla, 0.001, 0.2777, 0.1010, 0.2129, 50)
-
+                    pag_buscar = busca_personas(pantalla, 0.001, 0.2777, 0.1010, 0.2529, 50)
+                    print(f'pag buscar: {pag_buscar}')
                     if pag_buscar == 'buscar exitoso':
-                        buscar_dni = busco_dni(i)
-                        cliente = copia_datos_dni(pantalla, buscar_dni)
+                        dni_current = busco_dni(i)
+                        cliente = copia_datos_dni(pantalla, dni_current)
 
                         if cliente != 'error al copiar datos del cliente':
-                            nombre_cli, estado, sexo, fecha_nac_corr, dni_current = cliente
+                            nombre_cli, estado, sexo, fecha_nac_corr = cliente
                             flujo = cli_activo(pantalla, estado)
                             if flujo == 'realizado':
                                 verde = encontrar_verde(pantalla, estado)

@@ -1,1 +1,1 @@
-{'link': 'https://smartbg.dynamics.bancogalicia.com.ar/apps/portal', 'mail': 'operador.galicia54@hotmail.com', 'contrasena': 'Oper1234', 'ruta origen': 'E:/Proyectos python/ws_smart/origen.txt', 'ruta export': 'C:/Users/nicol/Desktop', 'tiempo': 0.7}
+{'link': 'https://smartbg.dynamics.bancogalicia.com.ar/apps/portal', 'mail': 'operador.galicia55@hotmail.com', 'contrasena': 'Oper1234', 'ruta origen': 'C:/Users/ferratton/Documents/Proy Des/Nueva carpeta/ws_smart/origen.txt', 'ruta export': 'C:/Users/ferratton/Desktop', 'tiempo': 1.0}
