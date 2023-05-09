@@ -58,12 +58,12 @@ def encontrar_verde(pantalla,estado):
     """ Encuentra punto verde de aprobado en pantalla de monto"""
     try:
           
-        punto_verde = gui.locateCenterOnScreen('punto_verde.png', grayscale=True, confidence=0.8)
+        punto_verde = gui.locateCenterOnScreen('img/punto_verde.png', grayscale=True, confidence=0.8)
         gui.click(punto_verde, button="left")
         
         #print(punto_verde)
 
-        click = gui.moveTo(int(punto_verde[0])+pantalla[0]*0.12,int(punto_verde[1])-pantalla[1]*0.10)
+        click = gui.moveTo(int(punto_verde[0])+pantalla[0]*0.12,int(punto_verde[1])-pantalla[1]*0.15)
 
         gui.drag(98, 0,0.3)
         gui.hotkey('ctrl', 'c')
@@ -76,16 +76,20 @@ def encontrar_verde(pantalla,estado):
         return error
     
 
-def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac, monto_proc):
+def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac, monto_proc, unique):
     """Guarda la info de la linea con todos los datos en el archivo."""
     try:   
         now = datetime.now()
+        #print(f'now :{now}')
         time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
-        print(f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
+        #print(f'time_stamp: {time_stamp}')
+        print(f'Guardar Info: {dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
         registro = (f'{dni_current},{nombre_cli},{estado},{sexo},{fecha_nac},{monto_proc},{time_stamp}')
         reg_proc = registro.splitlines()
         registro_fin = ''.join(reg_proc)
-        with open(f'{archivo_destino}\\export-{time_stamp}.txt', 'a') as arch:
+    
+        print('antes de abrir el archivo')
+        with open(f'{archivo_destino}/export-{unique}.txt', 'a') as arch:
             arch.write(f'{registro_fin},\n')
         fase = 'cargado'
         return fase
@@ -104,7 +108,7 @@ def cli_activo(pantalla,estado):
         time.sleep(2*tiempo_var.get())
         gui.scroll(-300)
         
-        time.sleep(3*tiempo_var.get())
+        time.sleep(5*tiempo_var.get())
         x=1 
         return 'realizado'
     else:
@@ -194,7 +198,7 @@ def log_in(mail, contrasena):
         gui.press('enter')
         mensaje = "Se realizó la apertura del explorador. Se logueó correctamente"
         reg_log(f'{archivo_destino}\log{date.today()}.txt',mensaje)
-        time.sleep(6*tiempo_var.get())
+        time.sleep(5*tiempo_var.get())
 
         return True
     except:
@@ -233,11 +237,11 @@ def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
         error = f'No se encuentra busqueda personas'
         return error
     
-def busco_dni(i):
+def busco_dni(dni):
     """Busca el dni siguiente en archivo de origen y lo coloca en el campo de busqueda. Da enter"""
 
     #Traigo DNI del txt
-    dni_current = lista_dni[i]
+    dni_current = dni
     #copio el DNI a portapapeles
     clip.copy(dni_current)
     #Pego el DNI en portapapeles
@@ -250,16 +254,24 @@ def busco_dni(i):
 def copia_datos_dni(pantalla, dni_current):
     """Copia los datos del dni encontrado y los deja en la variable cliente_proc, en caso de error, retorna el mismo."""
     try:
-        select = gui.locateCenterOnScreen('marco.png', grayscale=True, confidence=0.5)
-        gui.moveTo(select)
-        gui.drag(pantalla[0]*0.80,0,0.5)
+        select = gui.locateCenterOnScreen('img/marco2.png', grayscale=True, confidence=0.7)
+        
+        gui.moveTo(x=int(select[0]), y=int(select[1]*1.25))
+        time.sleep(0.3)
+        gui.drag(pantalla[0]*0.90,duration=0.3)
+        time.sleep(0.3)
+        print('por realizar ctrl C')
         gui.hotkey('ctrl', 'c')
+        print('por pegar en cliente')
         cliente = clip.paste()
-        #print(cliente)
+        
+        print('por separar lineas')
         nombre_cli, estado, sexo, fecha_nac  = cliente.splitlines()
+        print('hago un strip de la fecha nacimiento')
         fecha_nac_corr = fecha_nac.strip()
+        print('transformo cliente en una lista con los datos ')
         cliente_proc = [nombre_cli, estado, sexo, fecha_nac_corr, dni_current]
-        #print(f'nombre: {nombre_cli},estado: {estado} , sexo: {sexo}, fecha nac: {fecha_nac_corr}, dni: {dni_current}')
+        print(f'nombre: {nombre_cli},estado: {estado} , sexo: {sexo}, fecha nac: {fecha_nac_corr}, dni: {dni_current}')
         return cliente_proc
     except:
         error = 'error al copiar datos del cliente'
@@ -365,18 +377,21 @@ def ejecutar():
     #Abre chrome
     pantalla = gui.size()
 
+    #Declaro Variables de archivos y lo asigno desde el front a Archivo_origen y Archivo destino
     global archivo_origen
     archivo_origen = ruta_origen_var.get()
 
     global archivo_destino
     archivo_destino = ruta_export_var.get()
-    
-
+    now = datetime.now()
+    unique = now.strftime("%Y-%m-%d %H%M%S")
+    print(f'unique:{unique}')
+    #Leo Archivo origen
     with open(archivo_origen, 'r') as archivo:
         contenido = archivo.read().splitlines()
 
     global lista_dni
-
+    #Vuelco Archivo origen en una lista de dnis
     lista_dni = list(contenido)
     print(f'lista_dni: {lista_dni}')
 
@@ -389,7 +404,7 @@ def ejecutar():
 
         resultado_exp = abrir_explorador()
         print(f'resultado_exp:{resultado_exp}')
-        print('inicia proceso de abrir explorador')
+        
 
         if resultado_exp == "chrome ejecuto":
 
@@ -405,36 +420,43 @@ def ejecutar():
 
                 #Empieza el loop de pegado de dni
                 #print(int(pantalla[0]*0.80),int(pantalla[1]*0.15), int(pantalla[0]*0.11), int(pantalla[1]*0.09))
-            
-                for i in range(len(lista_dni)): 
-
+                registro = 0
+                for dni in lista_dni:
+                    registro +=1
+                    print(f'-------------------------registro: {registro}---------------------------')
                     # Buscar personas
                     pag_buscar = busca_personas(pantalla, 0.001, 0.2777, 0.1010, 0.2529, 50)
                     print(f'pag buscar: {pag_buscar}')
                     if pag_buscar == 'buscar exitoso':
-                        dni_current = busco_dni(i)
+                        dni_current = busco_dni(dni)
                         cliente = copia_datos_dni(pantalla, dni_current)
-
+                        print(f'Cliente: {cliente}')
                         if cliente != 'error al copiar datos del cliente':
-                            nombre_cli, estado, sexo, fecha_nac_corr = cliente
+                            nombre_cli, estado, sexo, fecha_nac_corr, dni_current = cliente
                             flujo = cli_activo(pantalla, estado)
+                            print(f'Flujo:{flujo}')
                             if flujo == 'realizado':
                                 verde = encontrar_verde(pantalla, estado)
+                                print(f'verde: {verde}')
                                 if verde != 'No se encuentra el punto verde':
-                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde)
+                                    guardado = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde, unique)
+                                    print(f'guardado: {guardado}')
                                 else:
-                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
+                                    guardado_else = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c',unique)
+                                    print(f'guardado_ else: {guardado_else}')
                                     reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{verde}',dni_current)
-                                    a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                                    reintento_a = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                                    print(f'Rententar a: {reintento_a}')
                                     continue
                             else:
                                 if cliente[1] == 'ACTIVO':
-                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
+                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c',unique)
                                     reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',dni_current)
-                                    a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                                    reintento_b = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                                    print(f'Rententar b: {reintento_b}')
                                     continue
                                 else:
-                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c')
+                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c',unique)
                                     reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',dni_current)
                                     continue
                         else:
@@ -451,8 +473,8 @@ def ejecutar():
             
             reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{resultado_exp}')
 
-        contador_explor +=1
-        print(contador_explor)
+    contador_explor +=1
+    print(f'contador_explor: {contador_explor}')
 
 #Frame
 
