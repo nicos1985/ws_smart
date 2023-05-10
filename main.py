@@ -63,7 +63,7 @@ def encontrar_verde(pantalla,estado):
         
         #print(punto_verde)
 
-        click = gui.moveTo(int(punto_verde[0])+pantalla[0]*0.12,int(punto_verde[1])-pantalla[1]*0.15)
+        click = gui.moveTo(int(punto_verde[0])+pantalla[0]*0.12,int(punto_verde[1])-pantalla[1]*0.10)
 
         gui.drag(98, 0,0.3)
         gui.hotkey('ctrl', 'c')
@@ -371,12 +371,24 @@ def leer_parametros():
 
 leer_parametros()
 
+def crea_ventana_nueva():
+    #Crear Ventana Pequeña
+    print('crea ventana')
+    ventana_pequeña = tk.Toplevel()
+    ventana_pequeña.geometry('150x29')
+    ventana_pequeña.configure(bg='#93BDA5')
+    ventana_pequeña.overrideredirect(True)
+    ventana_pequeña.resizable(width=False, height=False)
+
+
+
+    ventana_pequeña.mainloop()
 
 def ejecutar():
     """ejecuta el flujo del proceso. Construyendo"""
     #Abre chrome
     pantalla = gui.size()
-
+    crea_ventana_nueva()
     #Declaro Variables de archivos y lo asigno desde el front a Archivo_origen y Archivo destino
     global archivo_origen
     archivo_origen = ruta_origen_var.get()
@@ -423,7 +435,7 @@ def ejecutar():
                 registro = 0
                 for dni in lista_dni:
                     registro +=1
-                    print(f'-------------------------registro: {registro}---------------------------')
+                    print(f'-------------------------registro: {registro}||{dni}---------------------------')
                     # Buscar personas
                     pag_buscar = busca_personas(pantalla, 0.001, 0.2777, 0.1010, 0.2529, 50)
                     print(f'pag buscar: {pag_buscar}')
@@ -475,7 +487,7 @@ def ejecutar():
 
     contador_explor +=1
     print(f'contador_explor: {contador_explor}')
-
+    
 #Frame
 
 
@@ -531,6 +543,9 @@ botton_ejecutar.grid(row=7, column=2, sticky='W')
 
 botton_ejecutar = tk.Button(ventana, text='Guardar', command=lambda:guardar(), background='#377D56', font=('calibri',12), foreground='white')
 botton_ejecutar.grid(row=8, column=2, sticky='W')
+
+botton_ejecutar = tk.Button(ventana, text='tray', command=crea_ventana_nueva, background='#377D56', font=('calibri',13), foreground='white')
+botton_ejecutar.grid(row=11, column=2, padx=9, pady=9)
 
 
 
