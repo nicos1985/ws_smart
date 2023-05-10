@@ -389,7 +389,7 @@ def ejecutar():
     """ejecuta el flujo del proceso. Construyendo"""
     #Abre chrome
     pantalla = gui.size()
-    crea_ventana_nueva()
+    #crea_ventana_nueva()
     #Declaro Variables de archivos y lo asigno desde el front a Archivo_origen y Archivo destino
     global archivo_origen
     archivo_origen = ruta_origen_var.get()
@@ -545,8 +545,8 @@ botton_ejecutar.grid(row=7, column=2, sticky='W')
 botton_ejecutar = tk.Button(ventana, text='Guardar', command=lambda:guardar(), background='#377D56', font=('calibri',12), foreground='white')
 botton_ejecutar.grid(row=8, column=2, sticky='W')
 
-botton_ejecutar = tk.Button(ventana, text='tray', command=crea_ventana_nueva, background='#377D56', font=('calibri',13), foreground='white')
-botton_ejecutar.grid(row=11, column=2, padx=9, pady=9)
+#botton_ejecutar = tk.Button(ventana, text='tray', command=crea_ventana_nueva, background='#377D56', font=('calibri',13), foreground='white')
+#botton_ejecutar.grid(row=11, column=2, padx=9, pady=9)
 
 
 
