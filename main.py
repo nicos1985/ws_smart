@@ -378,11 +378,12 @@ def crea_ventana_nueva():
     ventana_pequeña.geometry('150x29')
     ventana_pequeña.configure(bg='#93BDA5')
     ventana_pequeña.overrideredirect(True)
+    
     ventana_pequeña.resizable(width=False, height=False)
 
 
 
-    ventana_pequeña.mainloop()
+    
 
 def ejecutar():
     """ejecuta el flujo del proceso. Construyendo"""
