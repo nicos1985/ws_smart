@@ -48,7 +48,7 @@ def a_reintentar_dni(dni_current, archivo, intentos=3):
         with open(archivo, 'a') as archivo:
             archivo.write(f'{dni_current}\n')
         lista_dni.append(dni)
-        print(lista_dni)
+        print('actualiza lista')
         return 'agregado'
     else:
         error = f'el {dni_current} superó la cantidad de intentos'
@@ -63,7 +63,7 @@ def encontrar_verde(pantalla,estado):
         
         #print(punto_verde)
 
-        click = gui.moveTo(int(punto_verde[0])+pantalla[0]*0.12,int(punto_verde[1])-pantalla[1]*0.10)
+        click = gui.moveTo(int(punto_verde[0])+pantalla[0]*0.12,int(punto_verde[1])-pantalla[1]*0.15)
 
         gui.drag(98, 0,0.3)
         gui.hotkey('ctrl', 'c')
@@ -408,6 +408,12 @@ def ejecutar():
     lista_dni = list(contenido)
     print(f'lista_dni: {lista_dni}')
 
+    contador_exito = 0
+
+    contador_reintento = 0
+
+    contador_reint_superado = 0
+
     contador_explor = 0
     resultado_exp = 'chrome no ejecuto'
 
@@ -454,11 +460,15 @@ def ejecutar():
                                 if verde != 'No se encuentra el punto verde':
                                     guardado = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde, unique)
                                     print(f'guardado: {guardado}')
+                                    contador_exito +=1
                                 else:
                                     guardado_else = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c',unique)
                                     print(f'guardado_ else: {guardado_else}')
                                     reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{verde}',dni_current)
                                     reintento_a = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                                    contador_reintento +=1
+                                    if reintento_a != 'agregado':
+                                       contador_reint_superado += 1 
                                     print(f'Rententar a: {reintento_a}')
                                     continue
                             else:
@@ -467,28 +477,35 @@ def ejecutar():
                                     reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',dni_current)
                                     reintento_b = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                     print(f'Rententar b: {reintento_b}')
+                                    contador_reintento +=1
+                                    if reintento_b != 'agregado':
+                                        contador_reint_superado += 1
                                     continue
                                 else:
                                     guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c',unique)
                                     reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',dni_current)
                                     continue
                         else:
-                            #archivo hay que definirlo entes de todo esto 
+                            #error al copiar datos del cliente 
                             
                             reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{cliente}', dni_current)
                             continue
                     else:
+                        #no encuentra buscar
                         reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{pag_buscar}')
                         continue
             else:
+                #Log in no se realizó
                 reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{res_log}')            
         else:
-            
+            #Chrome no ejecutó
             reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{resultado_exp}')
 
     contador_explor +=1
     print(f'contador_explor: {contador_explor}')
-    
+    print(f'contador_exito: {contador_exito}')
+    print(f'contador_reintento: {contador_reintento}')
+    print(f'contador_reintento superado: {contador_reint_superado}')
 #Frame
 
 
