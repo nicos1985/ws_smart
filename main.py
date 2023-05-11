@@ -62,7 +62,7 @@ def a_reintentar_dni(dni_current, archivo, intentos=3):
         error = f'el {dni_current} superó la cantidad de intentos'
         return error
 
-def encontrar_verde(pantalla,estado):
+def encontrar_verde(pantalla,estado,w):
     """ Encuentra punto verde de aprobado en pantalla de monto"""
     try:
           
@@ -71,7 +71,7 @@ def encontrar_verde(pantalla,estado):
         
         #print(punto_verde)
 
-        click = gui.moveTo(int(punto_verde[0])+pantalla[0]*0.12,int(punto_verde[1])-pantalla[1]*0.15)
+        click = gui.moveTo(int(punto_verde[0])+pantalla[0]*0.12,int(punto_verde[1])-pantalla[1]*w)
 
         gui.drag(98, 0,0.3)
         gui.hotkey('ctrl', 'c')
@@ -300,6 +300,7 @@ contrasena_var = tk.StringVar()
 ruta_origen_var = tk.StringVar()
 ruta_export_var = tk.StringVar()
 tiempo_var = tk.DoubleVar()
+pverde_var = tk.DoubleVar()
 
 #Funciones Vista
 def elegir_origen():
@@ -327,7 +328,8 @@ def guardar():
                        'contrasena': contrasena_var.get(), 
                        'ruta origen': ruta_origen_var.get(), 
                        'ruta export': ruta_export_var.get(),
-                       'tiempo': tiempo_var.get()
+                       'tiempo': tiempo_var.get(),
+                       'w pverde': pverde_var.get()
                        }
 
     with open('parametros.txt', 'w') as param:
@@ -358,6 +360,8 @@ ruta_destino_ent.grid(row=7, column=1, sticky='W', padx=5, pady=5)
 tiempo_ent = tk.Entry(ventana, textvariable = tiempo_var, width=80, font=('Calibri', 11))
 tiempo_ent.grid(row=8, column=1, sticky='W', padx=5, pady=5)
 
+w_pverde_ent = tk.Entry(ventana, textvariable = pverde_var, width=80, font=('Calibri', 11))
+w_pverde_ent.grid(row=9, column=1, sticky='W', padx=5, pady=5)
 
 def del_insert(objeto, insert):
     """Inserta texto en textbox previamente borra lo existente"""
@@ -376,6 +380,7 @@ def leer_parametros():
     del_insert(ruta_origen_ent,diccionario['ruta origen'])
     del_insert(ruta_destino_ent,diccionario['ruta export'])
     del_insert(tiempo_ent,diccionario['tiempo'])
+    del_insert(w_pverde_ent,diccionario['w pverde'])
 
 
 leer_parametros()
@@ -464,7 +469,7 @@ def ejecutar():
                             flujo = cli_activo(pantalla, estado)
                             print(f'Flujo:{flujo}')
                             if flujo == 'realizado':
-                                verde = encontrar_verde(pantalla, estado)
+                                verde = encontrar_verde(pantalla, estado,pverde_var.get())
                                 print(f'verde: {verde}')
                                 if verde != 'No se encuentra el punto verde':
                                     guardado = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde, unique)
@@ -547,6 +552,10 @@ ruta_destino_lb.grid(row = 7, column=0, sticky='W', padx=5, pady=5)
 tiempo_lb = tk.Label(ventana, text='Tiempo',
                    font=('Calibri', 11), foreground ='#323133')
 tiempo_lb.grid(row = 8, column=0, sticky='W', padx=5, pady=5)
+
+w_pverde_lb = tk.Label(ventana, text='Altura punto verde',
+                   font=('Calibri', 11), foreground ='#323133')
+w_pverde_lb.grid(row = 9, column=0, sticky='W', padx=5, pady=5)
 
 ##Entry##
 
