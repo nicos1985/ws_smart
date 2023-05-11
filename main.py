@@ -10,6 +10,14 @@ import os
 from psutil import Process 
 import psutil
 import ast 
+import sys
+
+"""Resuelve las rutas de los assets"""
+def resolver_ruta(ruta_relativa):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, ruta_relativa)
+    return os.path.join(os.path.abspath('.'), ruta_relativa)
+
 
 
 def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscale=True):
@@ -281,6 +289,7 @@ def copia_datos_dni(pantalla, dni_current):
 ventana = tk.Tk()
 ventana.geometry('1000x750')
 ventana.configure(bg='#93BDA5')
+ventana.iconbitmap('img/icon.ico')
 ventana.resizable(width=False, height=False)
 
 
