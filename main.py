@@ -64,13 +64,13 @@ def a_reintentar_dni(dni_current, archivo, intentos=3):
 
 def encontrar_verde(pantalla,estado,w):
     """ Encuentra punto verde de aprobado en pantalla de monto"""
+    
     retorno_verde = None
     contador = 0
-    while retorno_verde != True and contador < 15:
+    
+    while retorno_verde != True and contador < 20:
         try:
-            if contador == 1 or 10:
-                gui.press('f5')
-                print('refresca')
+            
             punto_verde = gui.locateCenterOnScreen('img/punto_verde.png', grayscale=True, confidence=0.8)
             gui.click(punto_verde, button="left")
             
@@ -124,13 +124,35 @@ def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_na
 def cli_activo(pantalla,estado):
     """Hace clik en el cliente activo y mueve con scroll hacia abajo."""
     if estado == "ACTIVO":
+        actualizar = None
         print('es cliente activo')
         gui.click(pantalla[0]*0.5, pantalla[1]*0.75)
         sel_click('img/activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50))
-        gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
-        time.sleep(2*tiempo_var.get())
-        gui.scroll(-300)
         
+        
+        time.sleep(3)
+
+        while actualizar != True:
+
+            try:
+                print('refresca')
+                sel_click('img/actualizar.png')
+                time.sleep(2*tiempo_var.get())
+                actualizar = True
+                print(f'actalizar: {actualizar}')
+
+                print('scroll') 
+                gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
+                gui.scroll(-300)
+                
+
+
+            except:
+                error = 'No se encuentra el boton actualizar'
+                print('No se encuentra el boton actualizar')
+    
+
+
         time.sleep(1*tiempo_var.get())
         x=1 
         return 'realizado'
@@ -215,8 +237,9 @@ def log_in(mail, contrasena):
     time.sleep(4*tiempo_var.get())
     #continua la sesion abierta
     try:
+        time.sleep(1.5*tiempo_var.get())
         gui.press('enter')
-        time.sleep(1*tiempo_var.get())
+        time.sleep(1.5*tiempo_var.get())
         
         gui.press('enter')
         mensaje = "Se realizó la apertura del explorador. Se logueó correctamente"
