@@ -7,7 +7,7 @@ import time
 import PIL
 from datetime import date, datetime
 import os
-from psutil import Process 
+from psutil import Process
 import psutil
 import ast 
 import sys
@@ -20,7 +20,7 @@ def resolver_ruta(ruta_relativa):
 
 
 
-def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscale=True):
+def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscale=True, confidence = 0.5):
     """Selecciona segun cordenadas de locate, mueve el mouse y hace clik en el punto indicado. Se pasan coordenadas y una png"""
     #print(png)
     #print(f'x1:{x1}')
@@ -31,7 +31,7 @@ def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscal
     #time.sleep(2)
     #gui.moveTo(x=(int(x1+w)), y=(int(x2+h)))
     #time.sleep(2)
-    png_coordenadas = gui.locateCenterOnScreen(png, grayscale=grayscale, confidence=0.5, region=(x1,x2,w,h))
+    png_coordenadas = gui.locateCenterOnScreen(png, grayscale=grayscale, confidence=confidence, region=(x1,x2,w,h))
     #print(f'png_coordenadas{png_coordenadas}')
     gui.moveTo(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0))
     gui.click(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0), clicks=1, button='left')
@@ -125,18 +125,19 @@ def cli_activo(pantalla,estado):
     """Hace clik en el cliente activo y mueve con scroll hacia abajo."""
     if estado == "ACTIVO":
         actualizar = None
+        contador = 0
         print('es cliente activo')
         gui.click(pantalla[0]*0.5, pantalla[1]*0.75)
-        sel_click('img/activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50))
+        sel_click('img/activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50),confidence = 0.5)
         
         
         time.sleep(3)
-
-        while actualizar != True:
+        """
+        while actualizar != True and contador < 20:
 
             try:
                 print('refresca')
-                sel_click('img/actualizar.png')
+                sel_click('img/actualizar.png',confidence = 0.85)
                 time.sleep(2*tiempo_var.get())
                 actualizar = True
                 print(f'actalizar: {actualizar}')
@@ -144,15 +145,19 @@ def cli_activo(pantalla,estado):
                 print('scroll') 
                 gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
                 gui.scroll(-300)
-                
+                contador +=1
 
 
             except:
                 error = 'No se encuentra el boton actualizar'
                 print('No se encuentra el boton actualizar')
+                contador += 1
     
-
-
+        """
+        print('scroll') 
+        gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
+        gui.scroll(-300)
+        contador +=1
         time.sleep(1*tiempo_var.get())
         x=1 
         return 'realizado'
@@ -275,7 +280,7 @@ def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
     contador = 0
     while retorno_buscar != 'buscar exitoso' and contador < 5:
         try:
-            sel_click('img/busqueda_personas.png',int(pantalla[0]*por_x),int(pantalla[1]*por_y), int(pantalla[0]*por_w), int(pantalla[1]*por_h),x0=x0)
+            sel_click('img/busqueda_personas.png',int(pantalla[0]*por_x),int(pantalla[1]*por_y), int(pantalla[0]*por_w), int(pantalla[1]*por_h),x0=x0,confidence = 0.5)
             time.sleep(0.5)
             gui.press('tab',2)
             retorno_buscar = 'buscar exitoso'
@@ -346,6 +351,7 @@ def copia_datos_dni(pantalla, dni_current):
 
 ventana = tk.Tk()
 ventana.geometry('1000x750')
+ventana.title('SMART Test - v0.93')
 ventana.configure(bg='#93BDA5')
 ventana.iconbitmap('img/icon.ico')
 ventana.resizable(width=False, height=False)
