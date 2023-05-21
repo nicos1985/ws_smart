@@ -11,6 +11,17 @@ from psutil import Process
 import psutil
 import ast 
 import sys
+from connect_db import *
+
+
+
+if not Galicia_Clients.table_exists():
+    db.create_tables([Galicia_Clients])
+    db.close()
+if not Smart_Log.table_exists():
+    
+    db.create_tables([Smart_Log])
+    db.close()
 
 """Resuelve las rutas de los assets"""
 def resolver_ruta(ruta_relativa):
@@ -37,12 +48,15 @@ def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscal
     gui.click(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0), clicks=1, button='left')
 
     # si esta activo el cliente entonces sigue a la proxima pantalla para poder obtener el monto
-def reg_log(archivo, mensaje, *args):
+def reg_log(archivo, mensaje, dni=0):
     """Registra un evento en el archivo indicado, hace un time stamp y los datos que se pasen por args."""
-    now = datetime.now()
+    now = datetime.datetime.now()
     time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
     with open(archivo, 'a') as archivo:
-        archivo.write(f'{mensaje},{args},{time_stamp}\n') 
+        archivo.write(f'{mensaje},{dni},{time_stamp}\n')
+    registro_log = Smart_Log(dni_log = dni, error = mensaje)
+    registro_log.save()
+    db.close()
 
 def a_reintentar_dni(dni_current, archivo, intentos=3):
     """agrega el dni a la lista de origen para poder reintentarlo"""
@@ -60,6 +74,9 @@ def a_reintentar_dni(dni_current, archivo, intentos=3):
         return 'agregado'
     else:
         error = f'el {dni_current} superó la cantidad de intentos'
+        registro_log = Smart_Log(dni_log = dni, error = error)
+        registro_log.save()
+        db.close()
         return error
 
 def encontrar_verde(pantalla,estado,w):
@@ -102,7 +119,7 @@ def encontrar_verde(pantalla,estado,w):
 def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac, monto_proc, unique):
     """Guarda la info de la linea con todos los datos en el archivo."""
     try:   
-        now = datetime.now()
+        now = datetime.datetime.now()
         #print(f'now :{now}')
         time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
         #print(f'time_stamp: {time_stamp}')
@@ -115,6 +132,9 @@ def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_na
         with open(f'{archivo_destino}/export-{unique}.txt', 'a') as arch:
             arch.write(f'{registro_fin},\n')
         fase = 'cargado'
+        registro_smart_tb= Galicia_Clients(dni = dni_current, nombre = nombre_cli, estado = estado, sexo = sexo, fecha_nacimiento = fecha_nac, monto = monto_proc, puesto = 'default')
+        registro_smart_tb.save()
+        db.close()
         return fase
     except:
         error = 'no se pudo cargar el registro en el archivo'
@@ -132,7 +152,7 @@ def cli_activo(pantalla,estado):
         
         
         time.sleep(3)
-        """
+        
         while actualizar != True and contador < 20:
 
             try:
@@ -156,7 +176,7 @@ def cli_activo(pantalla,estado):
         """
         print('scroll') 
         gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
-        gui.scroll(-300)
+        gui.scroll(-300)"""
         contador +=1
         time.sleep(1*tiempo_var.get())
         x=1 
@@ -475,7 +495,7 @@ def ejecutar():
 
     global archivo_destino
     archivo_destino = ruta_export_var.get()
-    now = datetime.now()
+    now = datetime.datetime.now()
     unique = now.strftime("%Y-%m-%d %H%M%S")
     print(f'unique:{unique}')
     #Leo Archivo origen
