@@ -13,15 +13,28 @@ import ast
 import sys
 from connect_db import *
 
+#Inicio Tkinter
+ventana = tk.Tk()
+ventana.geometry('1000x750')
+ventana.title('SMART Test - v0.97')
+ventana.configure(bg='#93BDA5')
+ventana.iconbitmap('img/icon.ico')
+ventana.resizable(width=False, height=False)
 
 
-if not Galicia_Clients.table_exists():
-    db.create_tables([Galicia_Clients])
-    db.close()
-if not Smart_Log.table_exists():
-    
-    db.create_tables([Smart_Log])
-    db.close()
+#variables Tkinter
+puesto_var = tk.StringVar()
+link_var = tk.StringVar()
+mail_var = tk.StringVar()
+contrasena_var = tk.StringVar()
+ruta_origen_var = tk.StringVar()
+ruta_export_var = tk.StringVar()
+tiempo_var = tk.DoubleVar()
+pverde_var = tk.DoubleVar()
+base_var = tk.StringVar()
+
+
+
 
 """Resuelve las rutas de los assets"""
 def resolver_ruta(ruta_relativa):
@@ -116,7 +129,7 @@ def encontrar_verde(pantalla,estado,w):
     else:
         return retorno_verde
 
-def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac, monto_proc, unique):
+def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac, monto_proc, puesto,unique):
     """Guarda la info de la linea con todos los datos en el archivo."""
     try:   
         now = datetime.datetime.now()
@@ -132,7 +145,7 @@ def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_na
         with open(f'{archivo_destino}/export-{unique}.txt', 'a') as arch:
             arch.write(f'{registro_fin},\n')
         fase = 'cargado'
-        registro_smart_tb= Galicia_Clients(dni = dni_current, nombre = nombre_cli, estado = estado, sexo = sexo, fecha_nacimiento = fecha_nac, monto = monto_proc, puesto = 'default')
+        registro_smart_tb= Galicia_Clients(dni = dni_current, nombre = nombre_cli, estado = estado, sexo = sexo, fecha_nacimiento = fecha_nac, monto = monto_proc, puesto = puesto)
         registro_smart_tb.save()
         db.close()
         return fase
@@ -369,23 +382,6 @@ def copia_datos_dni(pantalla, dni_current):
     else:
         return retorno_copia
 
-ventana = tk.Tk()
-ventana.geometry('1000x750')
-ventana.title('SMART Test - v0.93')
-ventana.configure(bg='#93BDA5')
-ventana.iconbitmap('img/icon.ico')
-ventana.resizable(width=False, height=False)
-
-
-#variables
-link_var = tk.StringVar()
-mail_var = tk.StringVar()
-contrasena_var = tk.StringVar()
-ruta_origen_var = tk.StringVar()
-ruta_export_var = tk.StringVar()
-tiempo_var = tk.DoubleVar()
-pverde_var = tk.DoubleVar()
-
 #Funciones Vista
 def elegir_origen():
     """Elige el origen de la ruta de los datos en txt"""
@@ -405,6 +401,16 @@ def elegir_destino():
     ruta_destino_ent.config(state='readonly')
     return ruta_export_var
 
+def elegir_destino_bd():
+    """elige la ruta de destino donde guardara la bd"""
+    base_ent.config(state='normal')
+    base_ent.delete(0,'end')
+    base_var = askdirectory()
+    base_ent.insert(0, base_var)
+    base_ent.config(state='readonly')
+    return base_var
+
+
 def guardar():
     """Guarda los parametros ingresados para recuperarlos en la proxima apertura"""
     parametros_dict = {'link': link_var.get(), 
@@ -413,39 +419,44 @@ def guardar():
                        'ruta origen': ruta_origen_var.get(), 
                        'ruta export': ruta_export_var.get(),
                        'tiempo': tiempo_var.get(),
-                       'w pverde': pverde_var.get()
+                       'w pverde': pverde_var.get(),
+                       'puesto' : puesto_var.get(),
+                       'base_datos' : base_var.get()
                        }
 
     with open('parametros.txt', 'w') as param:
         
         param.write(f'{parametros_dict}')
 
-link_ent = tk.Entry(ventana, textvariable = link_var, width=60, font=('Calibri', 11))
-link_ent.grid(row=2, column=1, sticky='W', padx=5, pady=5)
+puesto_ent = tk.Entry(ventana, textvariable = puesto_var, width=60, font=('Calibri', 11))
+puesto_ent.grid(row=2, column=1, sticky='W', padx=5, pady=5)
+
+base_ent = tk.Entry(ventana, textvariable = base_var, width=60, font=('Calibri', 11))
+base_ent.grid(row=3, column=1, sticky='W', padx=5, pady=5)
 
 link_ent = tk.Entry(ventana, textvariable = link_var, width=60, font=('Calibri', 11))
-link_ent.grid(row=2, column=1, sticky='W', padx=5, pady=5)
+link_ent.grid(row=4, column=1, sticky='W', padx=5, pady=5)
 #link_ent.insert(0,'https://smartbg.dynamics.bancogalicia.com.ar/apps/portal')
 
 mail_ent = tk.Entry(ventana, textvariable = mail_var, width=60, font=('Calibri', 11))
-mail_ent.grid(row=3, column=1, sticky='W', padx=5, pady=5)
+mail_ent.grid(row=5, column=1, sticky='W', padx=5, pady=5)
 #mail_ent.insert(0,'operador.galicia54@hotmail.com')
 
 cont_ent = tk.Entry(ventana, textvariable = contrasena_var, width=60, font=('Calibri', 11), show="*")
-cont_ent.grid(row=4, column=1, sticky='W', padx=5, pady=5)
+cont_ent.grid(row=6, column=1, sticky='W', padx=5, pady=5)
 #cont_ent.insert(0,'Oper1234')
 
 ruta_origen_ent = tk.Entry(ventana, textvariable = ruta_origen_var, width=80, font=('Calibri', 11))
-ruta_origen_ent.grid(row=6, column=1, sticky='W', padx=5, pady=5)
+ruta_origen_ent.grid(row=7, column=1, sticky='W', padx=5, pady=5)
 
 ruta_destino_ent = tk.Entry(ventana, textvariable = ruta_export_var, width=80, font=('Calibri', 11))
-ruta_destino_ent.grid(row=7, column=1, sticky='W', padx=5, pady=5)
+ruta_destino_ent.grid(row=8, column=1, sticky='W', padx=5, pady=5)
 
 tiempo_ent = tk.Entry(ventana, textvariable = tiempo_var, width=80, font=('Calibri', 11))
-tiempo_ent.grid(row=8, column=1, sticky='W', padx=5, pady=5)
+tiempo_ent.grid(row=9, column=1, sticky='W', padx=5, pady=5)
 
 w_pverde_ent = tk.Entry(ventana, textvariable = pverde_var, width=80, font=('Calibri', 11))
-w_pverde_ent.grid(row=9, column=1, sticky='W', padx=5, pady=5)
+w_pverde_ent.grid(row=10, column=1, sticky='W', padx=5, pady=5)
 
 def del_insert(objeto, insert):
     """Inserta texto en textbox previamente borra lo existente"""
@@ -465,6 +476,8 @@ def leer_parametros():
     del_insert(ruta_destino_ent,diccionario['ruta export'])
     del_insert(tiempo_ent,diccionario['tiempo'])
     del_insert(w_pverde_ent,diccionario['w pverde'])
+    del_insert(puesto_ent,diccionario['puesto'])
+    del_insert(base_ent,diccionario['base_datos'])
 
 
 leer_parametros()
@@ -486,6 +499,18 @@ def stop_execute():
 
 def ejecutar():
     """ejecuta el flujo del proceso. Construyendo"""
+    db = SqliteDatabase(f'{base_var.get()}/smart_bd.db')
+
+    if not Galicia_Clients.table_exists():
+        db.create_tables([Galicia_Clients])
+        db.close()
+
+    if not Smart_Log.table_exists():
+    
+        db.create_tables([Smart_Log])
+        db.close()
+
+
     #Abre chrome
     pantalla = gui.size()
     #crea_ventana_nueva()
@@ -562,11 +587,11 @@ def ejecutar():
                                     verde = encontrar_verde(pantalla, estado,pverde_var.get())
                                     print(f'verde: {verde}')
                                     if verde != 'No se encuentra el punto verde':
-                                        guardado = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde, unique)
+                                        guardado = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde, puesto_var.get(), unique)
                                         print(f'guardado: {guardado}')
                                         contador_exito +=1
                                     else:
-                                        guardado_else = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c',unique)
+                                        guardado_else = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(), unique)
                                         print(f'guardado_ else: {guardado_else}')
                                         reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{verde}',dni_current)
                                         reintento_a = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
@@ -577,7 +602,7 @@ def ejecutar():
                                         continue
                                 else:
                                     if cliente[1] == 'ACTIVO':
-                                        guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c',unique)
+                                        guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(),unique)
                                         reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',dni_current)
                                         reintento_b = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                         print(f'Rententar b: {reintento_b}')
@@ -586,7 +611,7 @@ def ejecutar():
                                             contador_reint_superado += 1
                                         continue
                                     else:
-                                        guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c',unique)
+                                        guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(),unique)
                                         reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',dni_current)
                                         continue
                             else:
@@ -623,33 +648,39 @@ titulo_lb.grid(row = 0, column=0, columnspan=4)
 seccion_princ = tk.Label(ventana, text='Log-in',font=('Calibri 15 bold'), foreground ='#323133', background='#93BDA5')
 seccion_princ.grid(row = 1, column=0, sticky='W', padx=5, pady=5)
 
+puesto_lb = tk.Label(ventana, text='Puesto',font=('Calibri', 11), foreground ='#323133')
+puesto_lb.grid(row = 2, column=0, sticky='W', padx=5, pady=5)
+
+base_lb = tk.Label(ventana, text='Base',font=('Calibri', 11), foreground ='#323133')
+base_lb.grid(row = 3, column=0, sticky='W', padx=5, pady=5)
+
 link_lb = tk.Label(ventana, text='Link',font=('Calibri', 11), foreground ='#323133')
-link_lb.grid(row = 2, column=0, sticky='W', padx=5, pady=5)
+link_lb.grid(row = 4, column=0, sticky='W', padx=5, pady=5)
 
 mail_lb = tk.Label(ventana, text='Mail',font=('Calibri', 11), foreground ='#323133')
-mail_lb.grid(row = 3, column=0, sticky='W', padx=5, pady=5)
+mail_lb.grid(row = 5, column=0, sticky='W', padx=5, pady=5)
 
 cont_lb = tk.Label(ventana, text='Contraseña',font=('Calibri', 11), foreground ='#323133')
-cont_lb.grid(row = 4, column=0, sticky='W', padx=5, pady=5)
+cont_lb.grid(row = 6, column=0, sticky='W', padx=5, pady=5)
 
 ruta_origen_lb = tk.Label(ventana, text='Ruta archivo origen',font=('Calibri', 11), foreground ='#323133')
-ruta_origen_lb.grid(row = 6, column=0, sticky='W', padx=5, pady=5)
+ruta_origen_lb.grid(row = 7, column=0, sticky='W', padx=5, pady=5)
 
 ruta_destino_lb = tk.Label(ventana, text='Ruta archivo destino',
                    font=('Calibri', 11), foreground ='#323133')
-ruta_destino_lb.grid(row = 7, column=0, sticky='W', padx=5, pady=5)
+ruta_destino_lb.grid(row = 8, column=0, sticky='W', padx=5, pady=5)
 
 tiempo_lb = tk.Label(ventana, text='Tiempo',
                    font=('Calibri', 11), foreground ='#323133')
-tiempo_lb.grid(row = 8, column=0, sticky='W', padx=5, pady=5)
+tiempo_lb.grid(row = 9, column=0, sticky='W', padx=5, pady=5)
 
 w_pverde_lb = tk.Label(ventana, text='Altura punto verde',
                    font=('Calibri', 11), foreground ='#323133')
-w_pverde_lb.grid(row = 9, column=0, sticky='W', padx=5, pady=5)
+w_pverde_lb.grid(row = 10, column=0, sticky='W', padx=5, pady=5)
 
 
 
-##Entry##
+
 
 
 
@@ -660,20 +691,23 @@ w_pverde_lb.grid(row = 9, column=0, sticky='W', padx=5, pady=5)
     
 
 #Boton de ejecutar
+botton_ejecutar = tk.Button(ventana, text='Examinar', command=elegir_destino_bd, background='#377D56', font=('calibri',12), foreground='white')
+botton_ejecutar.grid(row=3, column=2, sticky='W')
+
 botton_ejecutar = tk.Button(ventana, text='Iniciar', command=ejecutar, background='#377D56', font=('calibri',13), foreground='white')
 botton_ejecutar.grid(row=10, column=2, padx=9, pady=9)
 
-botton_ejecutar = tk.Button(ventana, text='Examinar', command=elegir_origen, background='#377D56', font=('calibri',12), foreground='white')
-botton_ejecutar.grid(row=6, column=2, sticky='W')
+botton_busc_orig = tk.Button(ventana, text='Examinar', command=elegir_origen, background='#377D56', font=('calibri',12), foreground='white')
+botton_busc_orig.grid(row=7, column=2, sticky='W')
 
-botton_ejecutar = tk.Button(ventana, text='Examinar', command=elegir_destino, background='#377D56', font=('calibri',12), foreground='white')
-botton_ejecutar.grid(row=7, column=2, sticky='W')
+botton_busc_dest = tk.Button(ventana, text='Examinar', command=elegir_destino, background='#377D56', font=('calibri',12), foreground='white')
+botton_busc_dest.grid(row=8, column=2, sticky='W')
 
-botton_ejecutar = tk.Button(ventana, text='Guardar', command=lambda:guardar(), background='#377D56', font=('calibri',12), foreground='white')
-botton_ejecutar.grid(row=8, column=2, sticky='W')
+botton_guardar = tk.Button(ventana, text='Guardar', command=lambda:guardar(), background='#377D56', font=('calibri',12), foreground='white')
+botton_guardar.grid(row=9, column=2, sticky='W')
 
-botton_ejecutar = tk.Button(ventana, text='Parar', command=lambda:stop_execute(), background='#377D56', font=('calibri',12), foreground='white')
-botton_ejecutar.grid(row=9, column=2, sticky='W')
+#botton_parar = tk.Button(ventana, text='Parar', command=lambda:stop_execute(), background='#377D56', font=('calibri',12), foreground='white')
+#botton_parar.grid(row=10, column=2, sticky='W')
 
 #botton_ejecutar = tk.Button(ventana, text='tray', command=crea_ventana_nueva, background='#377D56', font=('calibri',13), foreground='white')
 #botton_ejecutar.grid(row=11, column=2, padx=9, pady=9)
