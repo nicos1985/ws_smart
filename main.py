@@ -16,7 +16,7 @@ from connect_db import *
 #Inicio Tkinter
 ventana = tk.Tk()
 ventana.geometry('1000x750')
-ventana.title('SMART Test - v0.97')
+ventana.title('SMART Test - v0.99')
 ventana.configure(bg='#93BDA5')
 ventana.iconbitmap('img/icon.ico')
 ventana.resizable(width=False, height=False)
@@ -92,7 +92,7 @@ def a_reintentar_dni(dni_current, archivo, intentos=3):
         return 'agregado'
     else:
         error = f'el {dni_current} superó la cantidad de intentos'
-        registro_log = Smart_Log(dni_log = dni, error = error)
+        registro_log = Smart_Log(dni_log = dni, error = error, puesto = puesto_var.get())
         registro_log.save()
         db.close()
         return error
@@ -175,12 +175,12 @@ def cli_activo(pantalla,estado):
         
         
         time.sleep(3)
-        
+        """
         while actualizar != True and contador < 20:
 
             try:
                 print('refresca')
-                sel_click('img/actualizar.png',confidence = 0.85)
+                sel_click('img/actualizar.png',confidence = 0.90)
                 time.sleep(2*tiempo_var.get())
                 actualizar = True
                 print(f'actalizar: {actualizar}')
@@ -199,7 +199,7 @@ def cli_activo(pantalla,estado):
         """
         print('scroll') 
         gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
-        gui.scroll(-300)"""
+        gui.scroll(-300)
         contador +=1
         time.sleep(1*tiempo_var.get())
         x=1 
@@ -340,7 +340,8 @@ def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
     if retorno_buscar == 'buscar exitoso':
         return retorno_buscar
     else:
-        retorno_buscar
+        gui.press('f5')
+        return retorno_buscar
 
     
 def busco_dni(dni):
@@ -532,6 +533,7 @@ def ejecutar():
     archivo_destino = ruta_export_var.get()
     now = datetime.datetime.now()
     unique = now.strftime("%Y-%m-%d %H%M%S")
+
     print(f'unique:{unique}')
     #Leo Archivo origen
     try:
@@ -541,7 +543,7 @@ def ejecutar():
         messagebox.showwarning('Archivo origen', 'No se puede encontrar el archivo de origen')
         return 'Error en la ejecucion'
 
-    stop_flag = False
+    
 
     global lista_dni
     #Vuelco Archivo origen en una lista de dnis
@@ -581,74 +583,73 @@ def ejecutar():
                 #print(int(pantalla[0]*0.80),int(pantalla[1]*0.15), int(pantalla[0]*0.11), int(pantalla[1]*0.09))
                 registro = 0
                 for dni in lista_dni:
-                    if stop_flag ==True:
-                        break
-                    else:
-                        registro +=1
-                        print(f'-------------------------registro: {registro}||{dni}---------------------------')
-                        # Buscar personas
-                        pag_buscar = busca_personas(pantalla, 0.001, 0.2777, 0.1010, 0.2529, 50)
-                        print(f'pag buscar: {pag_buscar}')
-                        if pag_buscar == 'buscar exitoso':
-                            dni_current = busco_dni(dni)
-                            cliente = copia_datos_dni(pantalla, dni_current)
-                            print(f'Cliente: {cliente}')
-                            if cliente != 'error al copiar datos del cliente':
-                                nombre_cli, estado, sexo, fecha_nac_corr, dni_current = cliente
-                                flujo = cli_activo(pantalla, estado)
-                                print(f'Flujo:{flujo}')
-                                if flujo == 'realizado':
-                                    verde = encontrar_verde(pantalla, estado,pverde_var.get())
-                                    print(f'verde: {verde}')
-                                    if verde != 'No se encuentra el punto verde':
-                                        guardado = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde, puesto_var.get(), unique)
-                                        print(f'guardado: {guardado}')
-                                        contador_exito +=1
-                                    else:
-                                        guardado_else = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(), unique)
-                                        print(f'guardado_ else: {guardado_else}')
-                                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{verde}',puesto_var.get(), dni_current)
-                                        reintento_a = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
-                                        contador_reintento +=1
-                                        if reintento_a != 'agregado':
-                                            contador_reint_superado += 1 
-                                        print(f'Rententar a: {reintento_a}')
-                                        continue
+                    registro +=1
+                    print(f'-------------------------registro: {registro}||{dni}---------------------------')
+                    # Buscar personas
+                    pag_buscar = busca_personas(pantalla, 0.001, 0.2777, 0.1010, 0.2529, 50)
+                    print(f'pag buscar: {pag_buscar}')
+                    if pag_buscar == 'buscar exitoso':
+                        dni_current = busco_dni(dni)
+                        cliente = copia_datos_dni(pantalla, dni_current)
+                        print(f'Cliente: {cliente}')
+                        if cliente != 'error al copiar datos del cliente':
+                            nombre_cli, estado, sexo, fecha_nac_corr, dni_current = cliente
+                            flujo = cli_activo(pantalla, estado)
+                            print(f'Flujo:{flujo}')
+                            if flujo == 'realizado':
+                                verde = encontrar_verde(pantalla, estado,pverde_var.get())
+                                print(f'verde: {verde}')
+                                if verde != 'No se encuentra el punto verde':
+                                    guardado = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde, puesto_var.get(), unique)
+                                    print(f'guardado: {guardado}')
+                                    contador_exito +=1
                                 else:
-                                    if cliente[1] == 'ACTIVO':
-                                        guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(),unique)
-                                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',puesto_var.get(), dni_current)
-                                        reintento_b = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
-                                        print(f'Rententar b: {reintento_b}')
-                                        contador_reintento +=1
-                                        if reintento_b != 'agregado':
-                                            contador_reint_superado += 1
-                                        continue
-                                    else:
-                                        guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(),unique)
-                                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}', puesto_var.get(), dni_current)
-                                        continue
+                                    guardado_else = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(), unique)
+                                    print(f'guardado_ else: {guardado_else}')
+                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{verde}',puesto_var.get(), dni_current)
+                                    reintento_a = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                                    contador_reintento +=1
+                                    if reintento_a != 'agregado':
+                                        contador_reint_superado += 1 
+                                    print(f'Rententar a: {reintento_a}')
+                                    continue
                             else:
-                                #error al copiar datos del cliente 
-                                
-                                reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{cliente}', puesto_var.get(), dni_current)
-                                continue
+                                if cliente[1] == 'ACTIVO':
+                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(),unique)
+                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',puesto_var.get(), dni_current)
+                                    reintento_b = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
+                                    print(f'Rententar b: {reintento_b}')
+                                    contador_reintento +=1
+                                    if reintento_b != 'agregado':
+                                        contador_reint_superado += 1
+                                    continue
+                                else:
+                                    guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(),unique)
+                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}', puesto_var.get(), dni_current)
+                                    continue
                         else:
-                            #no encuentra buscar
-                            reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{pag_buscar}, {dni}',puesto_var.get())
+                            #error al copiar datos del cliente 
+                            
+                            reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{cliente}', puesto_var.get(), dni_current)
                             continue
-                else:
-                    #Log in no se realizó
-                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{res_log}', puesto_var.get(),)            
+                    else:
+                        #no encuentra buscar
+                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{pag_buscar}, {dni}',puesto_var.get(), dni)
+                        continue
             else:
-                #Chrome no ejecutó
-                reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{resultado_exp}',puesto_var.get())
+                #Log in no se realizó
+                reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{res_log}', puesto_var.get())            
+        else:
+            #Chrome no ejecutó
+            reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{resultado_exp}',puesto_var.get())
 
     contador_explor +=1
+    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'DNI Exitosos: {contador_exito}, DNI Reintentados: {contador_reintento}, DNI Reintentos superados: {contador_reint_superado}', puesto_var.get())
     print(f'contador_explor: {contador_explor}')
     print(f'contador_exito: {contador_exito}')
     print(f'contador_reintento: {contador_reintento}')
     print(f'contador_reintento superado: {contador_reint_superado}')
+    messagebox.showinfo('Proceso Finalizado', f'Proceso Finalizado: \n DNI Exitosos: {contador_exito},\n DNI Reintentados: {contador_reintento},\n DNI Reintentos superados: {contador_reint_superado}')
 #Frame
 
 
@@ -725,7 +726,6 @@ botton_guardar.grid(row=9, column=2, sticky='W')
 
 #botton_ejecutar = tk.Button(ventana, text='tray', command=crea_ventana_nueva, background='#377D56', font=('calibri',13), foreground='white')
 #botton_ejecutar.grid(row=11, column=2, padx=9, pady=9)
-
 
 
 ventana.mainloop()

@@ -1,20 +1,27 @@
 
 from peewee import *
 import datetime
-import ast 
+import ast
+import os 
 
 # Define la ruta de la base de datos
-with open('parametros.txt', 'r') as leer_param:
-    parametros = leer_param.read()
-    diccionario = ast.literal_eval(parametros)
-print(diccionario)
-base = diccionario['base_datos']
-print(base)
-ruta_basedatos = f'{base}/smart_bd.db'
-print(ruta_basedatos)
+try:
+    with open('parametros.txt', 'r') as leer_param:
+        parametros = leer_param.read()
+        diccionario = ast.literal_eval(parametros)
+    print(diccionario)
+    base = diccionario['base_datos']
+    print(base)
+    ruta_basedatos = f'{base}/smart_bd.db'
+    print(f'rutabd_try:{ruta_basedatos}')
+    db = SqliteDatabase(ruta_basedatos)
+except:
+    ruta_basedatos = f'{os.getcwd()}/smart_bd.db'
+    print(f'ruta bd_ except: {ruta_basedatos}')
+    db = SqliteDatabase(ruta_basedatos)
 
 # Crea una instancia de la base de datos con la ruta especificada
-db = SqliteDatabase(ruta_basedatos)
+
 
 # Define el formato de fecha
 FORMATO_FECHA = "%d-%m-%Y"
