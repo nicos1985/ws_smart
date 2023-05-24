@@ -61,13 +61,18 @@ def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscal
     gui.click(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0), clicks=1, button='left')
 
     # si esta activo el cliente entonces sigue a la proxima pantalla para poder obtener el monto
-def reg_log(archivo, mensaje, dni=0):
+def reg_log(archivo, mensaje, puesto, dni=0 ):
     """Registra un evento en el archivo indicado, hace un time stamp y los datos que se pasen por args."""
     now = datetime.datetime.now()
     time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
-    with open(archivo, 'a') as archivo:
-        archivo.write(f'{mensaje},{dni},{time_stamp}\n')
-    registro_log = Smart_Log(dni_log = dni, error = mensaje)
+    try:
+        with open(archivo, 'a') as archivo:
+            archivo.write(f'{mensaje},{dni},{puesto},{time_stamp}\n')
+    except:
+        messagebox.showwarning('Ruta no encontrada', f'Verifique la ruta {archivo}')
+        return 'ruta no encontrada'
+    
+    registro_log = Smart_Log(dni_log = dni, error = mensaje, puesto = puesto)
     registro_log.save()
     db.close()
 
@@ -142,8 +147,13 @@ def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_na
         registro_fin = ''.join(reg_proc)
     
         print('antes de abrir el archivo')
-        with open(f'{archivo_destino}/export-{unique}.txt', 'a') as arch:
-            arch.write(f'{registro_fin},\n')
+
+        try:
+            with open(f'{archivo_destino}/export-{unique}.txt', 'a') as arch:
+                arch.write(f'{registro_fin},\n')
+        except: 
+            messagebox.showerror('Ruta destino no encontrada', f'Verifique la ruta de destino {archivo_destino}')
+
         fase = 'cargado'
         registro_smart_tb= Galicia_Clients(dni = dni_current, nombre = nombre_cli, estado = estado, sexo = sexo, fecha_nacimiento = fecha_nac, monto = monto_proc, puesto = puesto)
         registro_smart_tb.save()
@@ -281,7 +291,7 @@ def log_in(mail, contrasena):
         
         gui.press('enter')
         mensaje = "Se realizó la apertura del explorador. Se logueó correctamente"
-        reg_log(f'{archivo_destino}\log{date.today()}.txt',mensaje)
+        reg_log(f'{archivo_destino}\log{date.today()}.txt',mensaje, puesto_var.get())
         time.sleep(5*tiempo_var.get())
 
         return True
@@ -500,7 +510,7 @@ def stop_execute():
 def ejecutar():
     """ejecuta el flujo del proceso. Construyendo"""
     db = SqliteDatabase(f'{base_var.get()}/smart_bd.db')
-
+    print(f'db_ejecutar = {db}')
     if not Galicia_Clients.table_exists():
         db.create_tables([Galicia_Clients])
         db.close()
@@ -524,8 +534,12 @@ def ejecutar():
     unique = now.strftime("%Y-%m-%d %H%M%S")
     print(f'unique:{unique}')
     #Leo Archivo origen
-    with open(archivo_origen, 'r') as archivo:
-        contenido = archivo.read().splitlines()
+    try:
+        with open(archivo_origen, 'r') as archivo:
+            contenido = archivo.read().splitlines()
+    except:
+        messagebox.showwarning('Archivo origen', 'No se puede encontrar el archivo de origen')
+        return 'Error en la ejecucion'
 
     stop_flag = False
 
@@ -593,7 +607,7 @@ def ejecutar():
                                     else:
                                         guardado_else = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(), unique)
                                         print(f'guardado_ else: {guardado_else}')
-                                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{verde}',dni_current)
+                                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{verde}',puesto_var.get(), dni_current)
                                         reintento_a = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                         contador_reintento +=1
                                         if reintento_a != 'agregado':
@@ -603,7 +617,7 @@ def ejecutar():
                                 else:
                                     if cliente[1] == 'ACTIVO':
                                         guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(),unique)
-                                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',dni_current)
+                                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',puesto_var.get(), dni_current)
                                         reintento_b = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                         print(f'Rententar b: {reintento_b}')
                                         contador_reintento +=1
@@ -612,23 +626,23 @@ def ejecutar():
                                         continue
                                     else:
                                         guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(),unique)
-                                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',dni_current)
+                                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}', puesto_var.get(), dni_current)
                                         continue
                             else:
                                 #error al copiar datos del cliente 
                                 
-                                reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{cliente}', dni_current)
+                                reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{cliente}', puesto_var.get(), dni_current)
                                 continue
                         else:
                             #no encuentra buscar
-                            reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{pag_buscar}, {dni}')
+                            reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{pag_buscar}, {dni}',puesto_var.get())
                             continue
                 else:
                     #Log in no se realizó
-                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{res_log}')            
+                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{res_log}', puesto_var.get(),)            
             else:
                 #Chrome no ejecutó
-                reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{resultado_exp}')
+                reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{resultado_exp}',puesto_var.get())
 
     contador_explor +=1
     print(f'contador_explor: {contador_explor}')

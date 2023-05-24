@@ -36,17 +36,21 @@ class Galicia_Clients(Model):
         database = db  # Asigna la base de datos a utilizar
 
     def save(self, *args, **kwargs):
-        self.fecha_modificacion = datetime.datetime.now()
+        self.fecha_modificacion = datetime.datetime.now().strftime(FORMATO_FECHA_HORA)
         return super(Galicia_Clients, self).save(*args, **kwargs)
 
 class Smart_Log(Model):
     dni_log = IntegerField(null=True,default='')
+    puesto = CharField()
     error = CharField()
     fecha_creacion = TextField(default=datetime.datetime.now().strftime(FORMATO_FECHA_HORA))
 
     class Meta:
         database = db  # Asigna la base de datos a utilizar
 
+    def save(self, *args, **kwargs):
+        self.fecha_creacion = datetime.datetime.now().strftime(FORMATO_FECHA_HORA)
+        return super(Smart_Log, self).save(*args, **kwargs)
 
 # Comprueba si la tabla existe antes de crearla
 
