@@ -12,11 +12,14 @@ import psutil
 import ast 
 import sys
 from connect_db import *
+from peewee import SqliteDatabase 
+
+
 
 #Inicio Tkinter
 ventana = tk.Tk()
 ventana.geometry('1000x750')
-ventana.title('SMART Test - v0.99')
+ventana.title('SMART Test - v1.00')
 ventana.configure(bg='#93BDA5')
 ventana.iconbitmap('img/icon.ico')
 ventana.resizable(width=False, height=False)
@@ -41,6 +44,41 @@ def resolver_ruta(ruta_relativa):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, ruta_relativa)
     return os.path.join(os.path.abspath('.'), ruta_relativa)
+
+
+
+def crea_db():
+    # Define la ruta de la base de datos
+    
+    try:
+        with open('parametros.txt', 'r') as leer_param:
+            parametros = leer_param.read()
+            diccionario = ast.literal_eval(parametros)
+        print(diccionario)
+        base = diccionario['base_datos']
+        print(base)
+        ruta_basedatos = f'{base}/smart_bd.db'
+        print(f'rutabd_try:{ruta_basedatos}')
+
+        db = SqliteDatabase(ruta_basedatos)
+        db.connect()
+
+        if not Galicia_Clients.table_exists():
+            db.create_tables([Galicia_Clients])
+            
+        if not Smart_Log.table_exists():
+            db.create_tables([Smart_Log])
+        
+        db.close()
+        estado = 'ruta establecida'
+        mensaje = 'BD Creada en Ruta establecida: '
+        
+        return estado, mensaje, ruta_basedatos
+
+    except OperationalError as e:
+        messagebox.showerror('Error en la conexion con la BD', f'Error al abrir la base de datos: {e}\nVerifique la ruta elegida y guarde')
+
+        
 
 
 
@@ -74,7 +112,7 @@ def reg_log(archivo, mensaje, puesto, dni=0 ):
     
     registro_log = Smart_Log(dni_log = dni, error = mensaje, puesto = puesto)
     registro_log.save()
-    db.close()
+    
 
 def a_reintentar_dni(dni_current, archivo, intentos=3):
     """agrega el dni a la lista de origen para poder reintentarlo"""
@@ -94,7 +132,7 @@ def a_reintentar_dni(dni_current, archivo, intentos=3):
         error = f'el {dni_current} superó la cantidad de intentos'
         registro_log = Smart_Log(dni_log = dni, error = error, puesto = puesto_var.get())
         registro_log.save()
-        db.close()
+        
         return error
 
 def encontrar_verde(pantalla,estado,w):
@@ -157,7 +195,7 @@ def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_na
         fase = 'cargado'
         registro_smart_tb= Galicia_Clients(dni = dni_current, nombre = nombre_cli, estado = estado, sexo = sexo, fecha_nacimiento = fecha_nac, monto = monto_proc, puesto = puesto)
         registro_smart_tb.save()
-        db.close()
+        
         return fase
     except:
         error = 'no se pudo cargar el registro en el archivo'
@@ -510,16 +548,10 @@ def stop_execute():
 
 def ejecutar():
     """ejecuta el flujo del proceso. Construyendo"""
-    db = SqliteDatabase(f'{base_var.get()}/smart_bd.db')
-    print(f'db_ejecutar = {db}')
-    if not Galicia_Clients.table_exists():
-        db.create_tables([Galicia_Clients])
-        db.close()
 
-    if not Smart_Log.table_exists():
+    retorno_crea_db = crea_db()
     
-        db.create_tables([Smart_Log])
-        db.close()
+    #Define la Pantalla
 
 
     #Abre chrome
@@ -644,12 +676,33 @@ def ejecutar():
             reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{resultado_exp}',puesto_var.get())
 
     contador_explor +=1
-    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'DNI Exitosos: {contador_exito}, DNI Reintentados: {contador_reintento}, DNI Reintentos superados: {contador_reint_superado}', puesto_var.get())
+    
     print(f'contador_explor: {contador_explor}')
     print(f'contador_exito: {contador_exito}')
     print(f'contador_reintento: {contador_reintento}')
     print(f'contador_reintento superado: {contador_reint_superado}')
-    messagebox.showinfo('Proceso Finalizado', f'Proceso Finalizado: \n DNI Exitosos: {contador_exito},\n DNI Reintentados: {contador_reintento},\n DNI Reintentos superados: {contador_reint_superado}')
+
+    now_fin = datetime.datetime.now()
+    global unique_fin
+    unique_fin = now_fin.strftime("%Y-%m-%d %H%M%S")
+    print(f'unique_fin: {unique_fin}')
+    diferencia = datetime.datetime.strptime(unique_fin, "%Y-%m-%d %H%M%S") - datetime.datetime.strptime(unique, "%Y-%m-%d %H%M%S")
+    print(f'diferencia: {diferencia}')
+    # Convierte la diferencia en horas y minutos
+    diferencia_horas = diferencia.seconds // 3600
+    print(f'diferencia_horas: {diferencia_horas}')
+    diferencia_minutos = (diferencia.seconds % 3600) // 60
+    print(f'diferencia_minutos: {diferencia_minutos}')
+    segundos = diferencia.seconds
+    print(f'segundos: {segundos}')
+    total_dni = contador_exito+contador_reintento+contador_reint_superado
+    prom_por_dni = round((segundos / total_dni),2)
+    print(f'prom_por_dni: {prom_por_dni}')
+    # Imprime la diferencia en horas y minutos
+    print(f'Proceso Finalizado: \nInicio de Proceso: {unique}\nFin de proceso: {unique_fin}\nTiempo total: {diferencia_horas}hs : {diferencia_minutos} min\n DNI Exitosos: {contador_exito},\n DNI Reintentados: {contador_reintento},\n DNI Reintentos superados: {contador_reint_superado}\n Total Procesos: {total_dni}\n Promedio de tiempo por DNI: {prom_por_dni} seg.')
+    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'Proceso Finalizado: \nInicio de Proceso: {unique}\nFin de proceso: {unique_fin}\nTiempo total: {diferencia_horas}hs : {diferencia_minutos} min\n DNI Exitosos: {contador_exito},\n DNI Reintentados: {contador_reintento},\n DNI Reintentos superados: {contador_reint_superado}\n Total Procesos: {total_dni}\n Promedio de tiempo por DNI: {prom_por_dni} seg.', puesto_var.get())
+    messagebox.showinfo('Proceso Finalizado', f'Proceso Finalizado: \nInicio de Proceso: {unique}\nFin de proceso: {unique_fin}\nTiempo total: {diferencia_horas}hs : {diferencia_minutos} min\n DNI Exitosos: {contador_exito},\n DNI Reintentados: {contador_reintento},\n DNI Reintentos superados: {contador_reint_superado}\n Total Procesos: {total_dni}\n Promedio de tiempo por DNI: {prom_por_dni} seg.')
+    
 #Frame
 
 
