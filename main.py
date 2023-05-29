@@ -12,7 +12,8 @@ import psutil
 import ast 
 import sys
 from connect_db import *
-from peewee import SqliteDatabase 
+from peewee import SqliteDatabase
+import re
 
 
 
@@ -112,7 +113,13 @@ def reg_log(archivo, mensaje, puesto, dni=0 ):
     
     registro_log = Smart_Log(dni_log = dni, error = mensaje, puesto = puesto)
     registro_log.save()
-    
+
+def validar_monto(monto):
+    patron = r'^[0-9]+$'
+    if re.match(patron, monto):
+        return monto
+    else:
+        return 'monto erroneo'    
 
 def a_reintentar_dni(dni_current, archivo, intentos=3):
     """agrega el dni a la lista de origen para poder reintentarlo"""
@@ -155,9 +162,13 @@ def encontrar_verde(pantalla,estado,w):
             gui.hotkey('ctrl', 'c')
             monto = clip.paste()
             monto_proc = monto.replace("$", "").replace(" ", "").replace(".","")
+            print(type(monto_proc))
+            monto_validado = validar_monto(monto_proc)
+            if monto_validado != 'monto erroneo':
+                print(f'monto validado:{monto_validado}')
+                
+                print(f'retorno verde:{retorno_verde}')
             retorno_verde = True
-            print(retorno_verde)
-            
         
         except:
             
@@ -168,7 +179,7 @@ def encontrar_verde(pantalla,estado,w):
             
         
     if retorno_verde == True:
-        return monto_proc
+        return monto_validado
     else:
         return retorno_verde
 
@@ -629,16 +640,16 @@ def ejecutar():
                             flujo = cli_activo(pantalla, estado)
                             print(f'Flujo:{flujo}')
                             if flujo == 'realizado':
-                                verde = encontrar_verde(pantalla, estado,pverde_var.get())
-                                print(f'verde: {verde}')
-                                if verde != 'No se encuentra el punto verde':
-                                    guardado = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, verde, puesto_var.get(), unique)
+                                monto = encontrar_verde(pantalla, estado,pverde_var.get())
+                                print(f'verde: {monto}')
+                                if monto != 'No se encuentra el punto verde':
+                                    guardado = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, monto, puesto_var.get(), unique)
                                     print(f'guardado: {guardado}')
                                     contador_exito +=1
                                 else:
                                     guardado_else = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(), unique)
                                     print(f'guardado_ else: {guardado_else}')
-                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{verde}',puesto_var.get(), dni_current)
+                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{monto}',puesto_var.get(), dni_current)
                                     reintento_a = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                     contador_reintento +=1
                                     if reintento_a != 'agregado':
