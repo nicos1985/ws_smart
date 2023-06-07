@@ -166,7 +166,7 @@ def encontrar_verde(pantalla,estado,w):
             gui.hotkey('ctrl', 'c')
             monto = clip.paste()
             print(f'monto: {monto}')
-            monto_proc = monto.replace("$", "").replace(" ", "").replace(".","")
+            monto_proc = (monto.replace("$", "").replace(" ", "").replace(".","")).strip()
             print(f'monto_proc: {monto_proc}')
             monto_validado = validar_monto(monto_proc)
             print(f'monto_validado: {monto_validado}')
@@ -227,8 +227,7 @@ def cli_activo(pantalla,estado):
         print('es cliente activo')
         gui.click(pantalla[0]*0.5, pantalla[1]*0.75)
         try:
-            cliente = sel_click('img/activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50),confidence = 0.5)
-            print(f'cliente activo: {cliente}')
+            sel_click('img/activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50),confidence = 0.5)
             
             time.sleep(2*tiempo_var.get())
             gui.press('f5')
@@ -261,10 +260,10 @@ def cli_activo(pantalla,estado):
             contador +=1
             time.sleep(1*tiempo_var.get())
             x=1 
-        except:
+        except TypeError as e:
             error = 'no se encuentra el cliente activo'
-            print(f'error : {error}')
-            return error
+            print(f'error : {error}, {e}')
+            return error, e
         
         return 'realizado'
     else:
@@ -661,6 +660,7 @@ def ejecutar():
                                 monto = encontrar_verde(pantalla, estado,pverde_var.get())
                                 print(f'verde: {monto}')
                                 if monto != 'No se encuentra el punto verde':
+                                    gui.screenshot()
                                     guardado = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, monto, puesto_var.get(), unique)
                                     print(f'guardado: {guardado}')
                                     contador_exito +=1
