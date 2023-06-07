@@ -116,6 +116,7 @@ def reg_log(archivo, mensaje, puesto, dni=0 ):
     
     registro_log = Smart_Log(dni_log = dni, error = mensaje, puesto = puesto)
     registro_log.save()
+    Smart_Log._meta.database.close()
 
 def validar_monto(monto):
     patron = r'^[0-9]+$'
@@ -164,9 +165,11 @@ def encontrar_verde(pantalla,estado,w):
             gui.drag(98, 0,0.3)
             gui.hotkey('ctrl', 'c')
             monto = clip.paste()
+            print(f'monto: {monto}')
             monto_proc = monto.replace("$", "").replace(" ", "").replace(".","")
-            print(type(monto_proc))
+            print(f'monto_proc: {monto_proc}')
             monto_validado = validar_monto(monto_proc)
+            print(f'monto_validado: {monto_validado}')
             if monto_validado != 'monto erroneo':
                 print(f'monto validado:{monto_validado}')
                 
@@ -664,7 +667,7 @@ def ejecutar():
                                 else:
                                     guardado_else = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(), unique)
                                     print(f'guardado_ else: {guardado_else}')
-                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{monto}',puesto_var.get(), dni_current)
+                                    reg_log(f'{archivo_destino}\log{unique}.txt',f'{monto}',puesto_var.get(), dni_current)
                                     reintento_a = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                     contador_reintento +=1
                                     if reintento_a != 'agregado':
