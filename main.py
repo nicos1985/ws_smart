@@ -19,7 +19,7 @@ from peewee import SqliteDatabase
 #Inicio Tkinter
 ventana = tk.Tk()
 ventana.geometry('1000x750')
-ventana.title('SMART Test - v1.00')
+ventana.title('SMART Test - v1.02')
 ventana.configure(bg='#93BDA5')
 ventana.iconbitmap('img/icon.ico')
 ventana.resizable(width=False, height=False)
@@ -36,8 +36,8 @@ tiempo_var = tk.DoubleVar()
 pverde_var = tk.DoubleVar()
 base_var = tk.StringVar()
 
-
-
+#evita que el programa se frene cuando se lleva el mouse arriba a la izquierda.
+gui.FAILSAFE = False  
 
 """Resuelve las rutas de los assets"""
 def resolver_ruta(ruta_relativa):
@@ -99,6 +99,9 @@ def sel_click(png,x1=0,x2=0,w=gui.size()[0],h=gui.size()[1],x0=0, y0=0, grayscal
     gui.click(x=(int(png_coordenadas[0])+x0), y=(int(png_coordenadas[1])+y0), clicks=1, button='left')
 
     # si esta activo el cliente entonces sigue a la proxima pantalla para poder obtener el monto
+
+
+
 def reg_log(archivo, mensaje, puesto, dni=0 ):
     """Registra un evento en el archivo indicado, hace un time stamp y los datos que se pasen por args."""
     now = datetime.datetime.now()
@@ -112,7 +115,7 @@ def reg_log(archivo, mensaje, puesto, dni=0 ):
     
     registro_log = Smart_Log(dni_log = dni, error = mensaje, puesto = puesto)
     registro_log.save()
-    
+    Smart_Log._meta.database.close()
 
 def a_reintentar_dni(dni_current, archivo, intentos=3):
     """agrega el dni a la lista de origen para poder reintentarlo"""
@@ -132,7 +135,7 @@ def a_reintentar_dni(dni_current, archivo, intentos=3):
         error = f'el {dni_current} superó la cantidad de intentos'
         registro_log = Smart_Log(dni_log = dni, error = error, puesto = puesto_var.get())
         registro_log.save()
-        
+        Smart_Log._meta.database.close()
         return error
 
 def encontrar_verde(pantalla,estado,w):
@@ -164,7 +167,7 @@ def encontrar_verde(pantalla,estado,w):
             retorno_verde = f'No se encuentra el punto verde'
             contador += 1
             print(retorno_verde + '. reintenta' + str(contador))
-            time.sleep(0.5)
+            time.sleep(0.5*tiempo_var.get())
             
         
     if retorno_verde == True:
@@ -195,7 +198,7 @@ def guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_na
         fase = 'cargado'
         registro_smart_tb= Galicia_Clients(dni = dni_current, nombre = nombre_cli, estado = estado, sexo = sexo, fecha_nacimiento = fecha_nac, monto = monto_proc, puesto = puesto)
         registro_smart_tb.save()
-        
+        Galicia_Clients._meta.database.close()
         return fase
     except:
         error = 'no se pudo cargar el registro en el archivo'
@@ -209,41 +212,53 @@ def cli_activo(pantalla,estado):
         contador = 0
         print('es cliente activo')
         gui.click(pantalla[0]*0.5, pantalla[1]*0.75)
-        sel_click('img/activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50),confidence = 0.5)
+        try:
+            cliente = sel_click('img/activo.png', int(pantalla[0]*0.12),int(pantalla[1]*0.20), int(pantalla[0]*0.50), int(pantalla[1]*0.50),confidence = 0.5)
+            print(f'cliente activo: {cliente}')
+            
+            time.sleep(2*tiempo_var.get())
+            gui.press('f5')
+            time.sleep(3*tiempo_var.get())
+            """
+            while actualizar != True and contador < 20:
+
+                try:
+                    print('refresca')
+                    sel_click('img/actualizar.png',confidence = 0.90)
+                    time.sleep(2*tiempo_var.get())
+                    actualizar = True
+                    print(f'actalizar: {actualizar}')
+
+                    print('scroll') 
+                    gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
+                    gui.scroll(-300)
+                    contador +=1
+
+
+                except:
+                    error = 'No se encuentra el boton actualizar'
+                    print('No se encuentra el boton actualizar')
+                    contador += 1
         
+            """
+            print('scroll') 
+            gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
+            gui.scroll(-300)
+            contador +=1
+            time.sleep(1*tiempo_var.get())
+            x=1 
+        except:
+            error = 'no se encuentra el cliente activo'
+            print(f'error : {error}')
+            return error
         
-        time.sleep(3)
-        """
-        while actualizar != True and contador < 20:
-
-            try:
-                print('refresca')
-                sel_click('img/actualizar.png',confidence = 0.90)
-                time.sleep(2*tiempo_var.get())
-                actualizar = True
-                print(f'actalizar: {actualizar}')
-
-                print('scroll') 
-                gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
-                gui.scroll(-300)
-                contador +=1
-
-
-            except:
-                error = 'No se encuentra el boton actualizar'
-                print('No se encuentra el boton actualizar')
-                contador += 1
-    
-        """
-        print('scroll') 
-        gui.moveTo(pantalla[0]*0.4,pantalla[1]*0.5)
-        gui.scroll(-300)
-        contador +=1
-        time.sleep(1*tiempo_var.get())
-        x=1 
         return 'realizado'
     else:
         return 'no realizado'
+    
+        
+
+       
         
        
 def get_process(process_name):
@@ -303,7 +318,7 @@ def ingresa_smart(url):
     gui.press('enter')
 
 
-def log_in(mail, contrasena):
+def log_in(mail, contrasena, unique):
     """Ingresa mail y contraseña para ingresar a smart"""
     #coloca mail y contraseña
     mail_smart = mail
@@ -313,12 +328,12 @@ def log_in(mail, contrasena):
     gui.press('del',50)
     clip.copy(mail_smart)
     gui.hotkey('ctrl', 'v')
-    time.sleep(0.2)
+    time.sleep(0.2*tiempo_var.get())
     gui.press('enter')
     time.sleep(4*tiempo_var.get())
     clip.copy(contra_smart)
     gui.hotkey('ctrl', 'v')
-    time.sleep(0.2)
+    time.sleep(0.2*tiempo_var.get())
     gui.press('enter')
     time.sleep(4*tiempo_var.get())
     #continua la sesion abierta
@@ -329,7 +344,7 @@ def log_in(mail, contrasena):
         
         gui.press('enter')
         mensaje = "Se realizó la apertura del explorador. Se logueó correctamente"
-        reg_log(f'{archivo_destino}\log{date.today()}.txt',mensaje, puesto_var.get())
+        reg_log(f'{archivo_destino}\log{unique}.txt',mensaje, puesto_var.get())
         time.sleep(5*tiempo_var.get())
 
         return True
@@ -349,9 +364,9 @@ def habilita_cursor():
     """habilita el modo de cursor para navegar y establece la pantalla al 100%"""
     #cambia a modo cursor para navegar
     gui.press('F7')
-    time.sleep(0.5)
+    time.sleep(0.5*tiempo_var.get())
     gui.press('enter')
-    time.sleep(0.5)
+    time.sleep(0.5*tiempo_var.get())
     #pantalla al 100%
     gui.hotkey('ctrl', '0')
     
@@ -362,7 +377,7 @@ def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
     while retorno_buscar != 'buscar exitoso' and contador < 5:
         try:
             sel_click('img/busqueda_personas.png',int(pantalla[0]*por_x),int(pantalla[1]*por_y), int(pantalla[0]*por_w), int(pantalla[1]*por_h),x0=x0,confidence = 0.5)
-            time.sleep(0.5)
+            time.sleep(0.5*tiempo_var.get())
             gui.press('tab',2)
             retorno_buscar = 'buscar exitoso'
             print(retorno_buscar)
@@ -373,7 +388,7 @@ def busca_personas(pantalla, por_x, por_y, por_w, por_h, x0):
             retorno_buscar = f'No se encuentra busqueda personas'
             contador += 1
             print(retorno_buscar + '. reintenta' + str(contador))
-            time.sleep(1)
+            time.sleep(1*tiempo_var.get())
             
     if retorno_buscar == 'buscar exitoso':
         return retorno_buscar
@@ -391,7 +406,7 @@ def busco_dni(dni):
     clip.copy(dni_current)
     #Pego el DNI en portapapeles
     gui.hotkey('ctrl', 'v')
-    time.sleep(0.3)
+    time.sleep(0.3*tiempo_var.get())
     gui.press('enter')
     time.sleep(1*tiempo_var.get())
     return dni_current
@@ -405,9 +420,9 @@ def copia_datos_dni(pantalla, dni_current):
             select = gui.locateCenterOnScreen('img/marco2.png', grayscale=True, confidence=0.7)
             
             gui.moveTo(x=int(select[0]), y=int(select[1]*1.25))
-            time.sleep(0.3)
+            time.sleep(0.3*tiempo_var.get())
             gui.drag(pantalla[0]*0.90,duration=0.3)
-            time.sleep(0.3)
+            time.sleep(0.3*tiempo_var.get())
             gui.hotkey('ctrl', 'c')
             cliente = clip.paste()
             
@@ -423,7 +438,7 @@ def copia_datos_dni(pantalla, dni_current):
             retorno_copia = 'error al copiar datos del cliente'
             contador += 1
             print(retorno_copia + '. reintenta' + str(contador))
-            time.sleep(0.5)
+            time.sleep(0.5*tiempo_var.get())
             
     
     if retorno_copia == 'copia exitosa':
@@ -606,7 +621,7 @@ def ejecutar():
 
             ingresa_smart(link_var.get())
 
-            res_log = log_in(mail_var.get(), contrasena_var.get())
+            res_log = log_in(mail_var.get(), contrasena_var.get(), unique)
             print(res_log)
             if res_log == True:
                 habilita_cursor()
@@ -638,7 +653,7 @@ def ejecutar():
                                 else:
                                     guardado_else = guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(), unique)
                                     print(f'guardado_ else: {guardado_else}')
-                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{verde}',puesto_var.get(), dni_current)
+                                    reg_log(f'{archivo_destino}\log{unique}.txt',f'{verde}',puesto_var.get(), dni_current)
                                     reintento_a = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                     contador_reintento +=1
                                     if reintento_a != 'agregado':
@@ -648,7 +663,7 @@ def ejecutar():
                             else:
                                 if cliente[1] == 'ACTIVO':
                                     guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(),unique)
-                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}',puesto_var.get(), dni_current)
+                                    reg_log(f'{archivo_destino}\log{unique}.txt',f'{flujo}',puesto_var.get(), dni_current)
                                     reintento_b = a_reintentar_dni(dni_current, archivo_origen, intentos=3)
                                     print(f'Rententar b: {reintento_b}')
                                     contador_reintento +=1
@@ -657,23 +672,23 @@ def ejecutar():
                                     continue
                                 else:
                                     guarda_info(archivo_destino, dni_current, nombre_cli, estado, sexo, fecha_nac_corr, 'n/c', puesto_var.get(),unique)
-                                    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{flujo}', puesto_var.get(), dni_current)
+                                    reg_log(f'{archivo_destino}\log{unique}.txt',f'{flujo}', puesto_var.get(), dni_current)
                                     continue
                         else:
                             #error al copiar datos del cliente 
                             
-                            reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{cliente}', puesto_var.get(), dni_current)
+                            reg_log(f'{archivo_destino}\log{unique}.txt',f'{cliente}', puesto_var.get(), dni_current)
                             continue
                     else:
                         #no encuentra buscar
-                        reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{pag_buscar}, {dni}',puesto_var.get(), dni)
+                        reg_log(f'{archivo_destino}\log{unique}.txt',f'{pag_buscar}, {dni}',puesto_var.get(), dni)
                         continue
             else:
                 #Log in no se realizó
-                reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{res_log}', puesto_var.get())            
+                reg_log(f'{archivo_destino}\log{unique}.txt',f'{res_log}', puesto_var.get())            
         else:
             #Chrome no ejecutó
-            reg_log(f'{archivo_destino}\log{date.today()}.txt',f'{resultado_exp}',puesto_var.get())
+            reg_log(f'{archivo_destino}\log{unique}.txt',f'{resultado_exp}',puesto_var.get())
 
     contador_explor +=1
     
@@ -700,7 +715,7 @@ def ejecutar():
     print(f'prom_por_dni: {prom_por_dni}')
     # Imprime la diferencia en horas y minutos
     print(f'Proceso Finalizado: \nInicio de Proceso: {unique}\nFin de proceso: {unique_fin}\nTiempo total: {diferencia_horas}hs : {diferencia_minutos} min\n DNI Exitosos: {contador_exito},\n DNI Reintentados: {contador_reintento},\n DNI Reintentos superados: {contador_reint_superado}\n Total Procesos: {total_dni}\n Promedio de tiempo por DNI: {prom_por_dni} seg.')
-    reg_log(f'{archivo_destino}\log{date.today()}.txt',f'Proceso Finalizado: \nInicio de Proceso: {unique}\nFin de proceso: {unique_fin}\nTiempo total: {diferencia_horas}hs : {diferencia_minutos} min\n DNI Exitosos: {contador_exito},\n DNI Reintentados: {contador_reintento},\n DNI Reintentos superados: {contador_reint_superado}\n Total Procesos: {total_dni}\n Promedio de tiempo por DNI: {prom_por_dni} seg.', puesto_var.get())
+    reg_log(f'{archivo_destino}\log{unique}.txt',f'Proceso Finalizado: \nInicio de Proceso: {unique}\nFin de proceso: {unique_fin}\nTiempo total: {diferencia_horas}hs : {diferencia_minutos} min\n DNI Exitosos: {contador_exito},\n DNI Reintentados: {contador_reintento},\n DNI Reintentos superados: {contador_reint_superado}\n Total Procesos: {total_dni}\n Promedio de tiempo por DNI: {prom_por_dni} seg.', puesto_var.get())
     messagebox.showinfo('Proceso Finalizado', f'Proceso Finalizado: \nInicio de Proceso: {unique}\nFin de proceso: {unique_fin}\nTiempo total: {diferencia_horas}hs : {diferencia_minutos} min\n DNI Exitosos: {contador_exito},\n DNI Reintentados: {contador_reintento},\n DNI Reintentos superados: {contador_reint_superado}\n Total Procesos: {total_dni}\n Promedio de tiempo por DNI: {prom_por_dni} seg.')
     
 #Frame
