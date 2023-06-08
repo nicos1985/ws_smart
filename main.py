@@ -14,6 +14,7 @@ import sys
 from connect_db import *
 from peewee import SqliteDatabase
 import re
+import PyPDF2
 
 
 
@@ -23,7 +24,11 @@ ventana.geometry('1000x750')
 ventana.title('SMART Test - v1.02')
 ventana.configure(bg='#93BDA5')
 ventana.iconbitmap('img/icon.ico')
-ventana.resizable(width=False, height=False)
+
+
+barra_menu = tk.Menu(ventana)
+
+
 
 
 #variables Tkinter
@@ -45,6 +50,27 @@ def resolver_ruta(ruta_relativa):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, ruta_relativa)
     return os.path.join(os.path.abspath('.'), ruta_relativa)
+
+def mostrar_acerca_de():
+    messagebox.showinfo("Acerca de", "Nombre de la aplicación: Smart test\nVersión: 1.02\nDesarrollador: Nicolas Ferratto")
+
+def mostrar_ayuda():
+    # Ruta del archivo PDF de instrucciones
+    archivo = "Guía Smart v102.pdf"
+
+    # Verificar si el archivo existe
+    if os.path.exists(archivo):
+        # Abrir el archivo PDF
+        os.startfile(archivo)
+    else:
+        messagebox.showerror("Error", "No se encontró el archivo de ayuda.")
+
+menu_ayuda = tk.Menu(barra_menu, tearoff=0)
+menu_ayuda.add_command(label="Guia", command=mostrar_ayuda)
+menu_ayuda.add_command(label="Acerca de", command=mostrar_acerca_de)
+barra_menu.add_cascade(menu=menu_ayuda, label='Ayuda')
+ventana.config(menu=barra_menu)
+
 
 
 
